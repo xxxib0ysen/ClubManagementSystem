@@ -52,4 +52,5 @@ public class ClubController {
         clubService.updateClubImage(clubId, imageUrl);
         return "Image uploaded successfully: " + imageUrl;
     }
+
 }

@@ -42,4 +42,5 @@ public class ClubServiceImpl implements ClubService {
     public void updateClubImage(int clubId, String imageUrl) {
         clubMapper.updateClubImage(clubId, imageUrl);
     }
+
 }

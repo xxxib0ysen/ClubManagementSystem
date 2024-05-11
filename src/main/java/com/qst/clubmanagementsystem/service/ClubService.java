@@ -18,4 +18,5 @@ public interface ClubService {
     // 更新社团的图片URL
     void updateClubImage(int clubId, String imageUrl);
 
+
 }

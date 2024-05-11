@@ -17,4 +17,5 @@ public class Club {
     private String description;
     private String imageUrl;
 
+
 }
