@@ -1,6 +1,7 @@
 package com.qst.clubmanagementsystem.controller;
 
 import com.qst.clubmanagementsystem.entity.Club;
+import com.qst.clubmanagementsystem.entity.ClubMemberCount;
 import com.qst.clubmanagementsystem.service.ClubService;
 import com.qst.clubmanagementsystem.service.FileStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +45,6 @@ public class ClubController {
         return clubService.getAllClubs();
     }
 
-    // 上传社团图像并更新图像URL
     @PostMapping("/{clubId}/uploadImage")
     public String uploadClubImage(@PathVariable int clubId, @RequestParam("file") MultipartFile file) {
         String fileName = fileStorageService.storeFile(file);
@@ -53,4 +53,18 @@ public class ClubController {
         return "Image uploaded successfully: " + imageUrl;
     }
 
+    @GetMapping("/member-counts")
+    public List<ClubMemberCount> getClubMemberCounts() {
+        return clubService.getClubMemberCounts();
+    }
+
+    @GetMapping("/page")
+    public List<Club> getClubsPaginated(@RequestParam("page") int page, @RequestParam("size") int size) {
+        return clubService.getClubsPaginated(page, size);
+    }
+
+    @GetMapping("/search")
+    public List<Club> searchClubs(@RequestParam("term") String searchTerm) {
+        return clubService.searchClubsByTerm(searchTerm);
+    }
 }

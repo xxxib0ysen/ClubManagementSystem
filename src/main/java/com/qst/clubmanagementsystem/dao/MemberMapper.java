@@ -14,12 +14,12 @@ import java.util.List;
 public interface MemberMapper {
 
     // 插入一个新的会员，并自动回填主键
-    @Insert("INSERT INTO Members (club_id, member_name, email) VALUES (#{clubId}, #{memberName}, #{email})")
+    @Insert("INSERT INTO Members (club_id, member_name) VALUES (#{clubId}, #{memberName})")
     @Options(useGeneratedKeys = true, keyProperty = "memberId")
-    int insertMember(Member member);
+    void insertMember(Member member);
 
     // 更新指定ID的会员信息
-    @Update("UPDATE Members SET club_id = #{clubId}, member_name = #{memberName}, email = #{email} WHERE member_id = #{memberId}")
+    @Update("UPDATE Members SET club_id = #{clubId}, member_name = #{memberName} WHERE member_id = #{memberId}")
     void updateMember(Member member);
 
     // 根据ID删除一个会员
@@ -42,6 +42,9 @@ public interface MemberMapper {
     // 查询所有会员
     @Select("SELECT * FROM Members")
     List<Member> selectAllMembers();
+
+    @Select("SELECT * FROM Members WHERE club_id = #{clubId}")
+    List<Member> selectMembersByClubId(int clubId);
 
     // 分页查询会员信息
     @Select("SELECT * FROM Members LIMIT #{offset}, #{limit}")

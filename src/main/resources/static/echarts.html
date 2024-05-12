@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>社团会员数量统计数据</title>
+    <script src="/static/js/echarts.min.js"></script>
+</head>
+<body>
+<div class="container">
+    <h1>社团会员数量统计数据展示</h1>
+    <div id="main" style="width: 600px;height:400px;"></div>
+    <script>
+        var myChart = echarts.init(document.getElementById('main'));
+
+        function loadChartData() {
+            $.ajax({
+                url: '/clubs/member-counts', // 假设从此API获取社团会员数量统计数据
+                type: 'GET',
+                success: function(response) {
+                    var clubs = response.map(item => item.clubName);
+                    var counts = response.map(item => item.memberCount);
+
+                    var option = {
+                        xAxis: {
+                            type: 'category',
+                            data: clubs
+                        },
+                        yAxis: {
+                            type: 'value'
+                        },
+                        series: [{
+                            data: counts,
+                            type: 'bar'
+                        }]
+                    };
+                    myChart.setOption(option);
+                },
+                error: function() {
+                    alert('失败');
+                }
+            });
+        }
+
+        $(document).ready(function() {
+            loadChartData();
+        });
+    </script>
+</div>
+</body>
+</html>

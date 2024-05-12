@@ -15,14 +15,13 @@ import org.springframework.web.multipart.MultipartFile;
  */
 
 @RestController
-@RequestMapping("/api/files")
+@RequestMapping("/api/uploads")
 public class FileUploadController {
-
     @Autowired
     private FileStorageService fileStorageService;
 
-    // 上传图片并返回文件存储的URL
-    @PostMapping("/upload")
+    // 上传文件并返回文件存储的URL
+    @PostMapping("/file")
     public String uploadFile(@RequestParam("file") MultipartFile file) {
         String fileName = fileStorageService.storeFile(file);
         return "File uploaded successfully: " + fileName;

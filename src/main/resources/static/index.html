@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>社团后台管理系统</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/css/style.css" rel="stylesheet">
+
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+            <div class="sidebar-sticky">
+                <ul class="nav flex-column">
+                    <li class="nav-item"><a href="#" class="nav-link" id="loadClubManagement">社团管理</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link" id="loadMemberManagement">会员管理</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link" id="loadZTreeDisplay">ZTree展示</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link" id="loadEChartsDisplay">社团会员数量统计数据</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4 content">
+            <h1>Dashboard</h1>
+            <div id="mainContent">
+                你好，欢迎使用社团后台管理系统！
+            </div>
+        </main>
+    </div>
+</div>
+
+<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/4.6.0/js/bootstrap.min.js"></script>
+<script src = "/static/js/style.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#loadClubManagement').click(function() {
+            $('#mainContent').load('club_management.html');
+        });
+        $('#loadMemberManagement').click(function() {
+            $('#mainContent').load('member_management.html');
+        });
+        $('#loadZTreeDisplay').click(function() {
+            $('#mainContent').load('treeIndex.html');
+        });
+        $('#loadEChartsDisplay').click(function() {
+            $('#mainContent').load('echarts.html');
+        });
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>会员管理</title>
+    <link href="/static/css/style.css" rel="stylesheet">
+</head>
+<body>
+<div class="container">
+    <h1>会员管理s</h1>
+    <button onclick="loadMembers()">Load Members</button>
+    <div id="membersList"></div>
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        function loadMembers() {
+            $.ajax({
+                url: '/members/',
+                type: 'GET',
+                success: function(data) {
+                    let html = '<ul>';
+                    data.forEach(member => {
+                        html += `<li>${member.memberName} - <button onclick="deleteMember(${member.memberId})">Delete</button></li>`;
+                    });
+                    html += '</ul>';
+                    $('#membersList').html(html);
+                },
+                error: function() {
+                    alert('加载错误');
+                }
+            });
+        }
+
+        function deleteMember(memberId) {
+            $.ajax({
+                url: '/members/' + memberId,
+                type: 'DELETE',
+                success: function() {
+                    loadMembers(); // Reload members after deletion
+                },
+                error: function() {
+                    alert('删除错误');
+                }
+            });
+        }
+    </script>
+</div>
+</body>
+</html>

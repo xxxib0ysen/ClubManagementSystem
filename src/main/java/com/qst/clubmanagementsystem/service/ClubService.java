@@ -1,6 +1,7 @@
 package com.qst.clubmanagementsystem.service;
 
 import com.qst.clubmanagementsystem.entity.Club;
+import com.qst.clubmanagementsystem.entity.ClubMemberCount;
 
 import java.util.List;
 
@@ -15,8 +16,8 @@ public interface ClubService {
     void updateClub(Club club);
     void deleteClub(int clubId);
     List<Club> getAllClubs();
-    // 更新社团的图片URL
     void updateClubImage(int clubId, String imageUrl);
-
-
+    List<ClubMemberCount> getClubMemberCounts();
+    List<Club> getClubsPaginated(int pageNumber, int pageSize);
+    List<Club> searchClubsByTerm(String searchTerm);
 }
