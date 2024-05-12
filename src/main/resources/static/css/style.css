@@ -1,0 +1,24 @@
+/* CSS for the entire Club Management System */
+body {
+    padding-top: 20px;
+}
+.sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 100;
+    padding: 90px 0 0; /* Height of the top navbar */
+    box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+}
+.sidebar-sticky {
+    position: sticky;
+    top: 0; /* Height of navbar */
+    height: calc(100vh - 48px);
+    padding-top: .5rem;
+    overflow-x: hidden;
+    overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
+}
+.content {
+    padding-left: 250px; /* Same as the width of the sidebar */
+}
