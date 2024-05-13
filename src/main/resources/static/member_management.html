@@ -1,47 +1,116 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>会员管理</title>
-    <link href="/static/css/style.css" rel="stylesheet">
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: #f8f9fa;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            padding: 8px;
+            background-color: #f4f4f4;
+            border: 1px solid #ddd;
+            margin-top: 5px;
+        }
+        button, input[type="button"], input[type="submit"] {
+            cursor: pointer;
+            background-color: #007bff;
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            transition-duration: 0.4s;
+            border-radius: 5px;
+        }
+        button:hover, input[type="button"]:hover, input[type="submit"]:hover {
+            background-color: white;
+            color: black;
+            border: 1px solid #007bff;
+        }
+        .loading {
+            color: #666;
+            text-align: center;
+        }
+        input[type="text"] {
+            padding: 5px;
+            margin: 5px;
+        }
+    </style>
 </head>
 <body>
 <div class="container">
-    <h1>会员管理s</h1>
-    <button onclick="loadMembers()">Load Members</button>
+    <h1>会员管理</h1>
+    <input type="text" id="searchTerm" placeholder="搜索会员...">
+    <input type="button" value="搜索" onclick="searchMembers()">
     <div id="membersList"></div>
     <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script>
-        function loadMembers() {
+        $(document).ready(function() {
+            loadMembers();
+        });
+
+        function loadMembers(searchTerm = '', page = 1) {
+            const url = searchTerm ? `/members/search?term=${encodeURIComponent(searchTerm)}&page=${page}` : `/members/`;
             $.ajax({
-                url: '/members/',
+                url: url,
                 type: 'GET',
                 success: function(data) {
-                    let html = '<ul>';
-                    data.forEach(member => {
-                        html += `<li>${member.memberName} - <button onclick="deleteMember(${member.memberId})">Delete</button></li>`;
-                    });
-                    html += '</ul>';
-                    $('#membersList').html(html);
+                    if (data.length === 0) {
+                        $('#membersList').html('<p class="loading">没有会员数据。</p>');
+                    } else {
+                        let html = '<ul>';
+                        data.forEach(member => {
+                            html += `<li>${member.member_name} - <button onclick="deleteMember(${member.member_id})">删除</button></li>`;
+                        });
+                        html += '</ul>';
+                        $('#membersList').html(html);
+                    }
                 },
                 error: function() {
-                    alert('加载错误');
+                    $('#membersList').html('<p class="loading">加载错误，请重试。</p>');
                 }
             });
         }
 
-        function deleteMember(memberId) {
-            $.ajax({
-                url: '/members/' + memberId,
-                type: 'DELETE',
-                success: function() {
-                    loadMembers(); // Reload members after deletion
-                },
-                error: function() {
-                    alert('删除错误');
-                }
-            });
+        function searchMembers() {
+            const searchTerm = $('#searchTerm').val();
+            loadMembers(searchTerm);
+        }
+
+        function deleteMember(member_id) {
+            if (confirm('确认删除这位会员吗？')) {
+                $.ajax({
+                    url: '/members/' + member_id,
+                    type: 'DELETE',
+                    success: function() {
+                        loadMembers(); // Reload members after deletion
+                    },
+                    error: function() {
+                        alert('删除错误');
+                    }
+                });
+            }
         }
     </script>
 </div>
