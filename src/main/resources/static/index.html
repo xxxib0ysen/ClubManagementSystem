@@ -5,27 +5,82 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>社团后台管理系统</title>
     <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/static/css/style.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: #f8f9fa;
+        }
 
+        .sidebar {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            padding: 48px 0 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,.1);
+            background-color: #343a40;
+        }
+
+        .sidebar-sticky {
+            position: relative;
+            top: 0;
+            height: calc(100vh - 48px);
+            padding-top: .5rem;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+
+        .sidebar .nav-link {
+            font-weight: 500;
+            color: #cfd8dc;
+        }
+
+        .sidebar .nav-link.active {
+            color: #ffffff;
+            background-color: #007bff;
+        }
+
+        .content {
+            padding: 20px;
+        }
+
+        .content h1 {
+            color: #343a40;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                top: 5rem;
+            }
+        }
+    </style>
 </head>
 <body>
 <div class="container-fluid">
     <div class="row">
         <!-- Sidebar -->
-        <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+        <nav class="col-md-2 d-none d-md-block sidebar">
             <div class="sidebar-sticky">
                 <ul class="nav flex-column">
-                    <li class="nav-item"><a href="#" class="nav-link" id="loadClubManagement">社团管理</a></li>
-                    <li class="nav-item"><a href="#" class="nav-link" id="loadMemberManagement">会员管理</a></li>
-                    <li class="nav-item"><a href="#" class="nav-link" id="loadZTreeDisplay">ZTree展示</a></li>
-                    <li class="nav-item"><a href="#" class="nav-link" id="loadEChartsDisplay">社团会员数量统计数据</a></li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link active" id="loadClubManagement">社团管理</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" id="loadMemberManagement">会员管理</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" id="loadZTreeDisplay">ZTree展示</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" id="loadEChartsDisplay">社团会员数量统计数据</a>
+                    </li>
                 </ul>
             </div>
         </nav>
 
         <!-- Main Content -->
         <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4 content">
-            <h1>Dashboard</h1>
             <div id="mainContent">
                 你好，欢迎使用社团后台管理系统！
             </div>
@@ -35,22 +90,30 @@
 
 <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/4.6.0/js/bootstrap.min.js"></script>
-<script src = "/static/js/style.js"></script>
 <script>
     $(document).ready(function() {
         $('#loadClubManagement').click(function() {
             $('#mainContent').load('club_management.html');
+            setActive(this);
         });
         $('#loadMemberManagement').click(function() {
             $('#mainContent').load('member_management.html');
+            setActive(this);
         });
         $('#loadZTreeDisplay').click(function() {
             $('#mainContent').load('treeIndex.html');
+            setActive(this);
         });
         $('#loadEChartsDisplay').click(function() {
             $('#mainContent').load('echarts.html');
+            setActive(this);
         });
     });
+
+    function setActive(current) {
+        $('.nav-link').removeClass('active');
+        $(current).addClass('active');
+    }
 </script>
 </body>
 </html>
