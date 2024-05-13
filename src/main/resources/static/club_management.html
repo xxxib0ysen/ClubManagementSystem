@@ -1,47 +1,235 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>社团管理</title>
-    <link href="/static/css/style.css" rel="stylesheet">
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/4.5.3/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .pagination {
+            margin-top: 20px;
+        }
+        .modal-content input, .modal-content select, .modal-content textarea {
+            margin-bottom: 10px;
+        }
+        img.club-image {
+            width: 100px;
+            height: 100px;
+            border-radius: 5px;
+            object-fit: cover;
+        }
+        .no-clubs, .no-members {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .btn-small {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            border-radius: 0.2rem;
+        }
+        .checkbox {
+            vertical-align: middle;
+        }
+        .members-list {
+            display: none;
+            margin-top: 10px;
+        }
+    </style>
 </head>
 <body>
 <div class="container">
-    <h1>社团管理</h1>
-    <button onclick="loadClubs()">加载社团</button>
-    <div id="clubsList"></div>
+    <h1 class="my-4">社团管理</h1>
+    <div class="form-inline mb-3">
+        <input type="text" class="form-control mr-sm-2" id="searchTerm" placeholder="搜索社团...">
+        <button class="btn btn-outline-success my-2 my-sm-0" onclick="searchClubs()">搜索</button>
+        <button class="btn btn-danger ml-2" onclick="batchDelete()">批量删除</button>
+        <button class="btn btn-primary ml-auto" data-toggle="modal" data-target="#addClubModal">添加社团</button>
+    </div>
+
+    <!-- 社团列表 -->
+    <table class="table table-striped" id="clubsTable">
+        <thead class="thead-dark">
+        <tr>
+            <th><input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)"></th>
+            <th>社团名称</th>
+            <th>描述</th>
+            <th>操作</th>
+            <th>预览</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!-- 社团信息将在这里填充 -->
+        </tbody>
+    </table>
+    <nav>
+        <ul class="pagination justify-content-center">
+            <!-- 分页按钮将在这里填充 -->
+        </ul>
+    </nav>
+
+    <!-- 添加社团的模态框 -->
+    <div class="modal fade" id="addClubModal" tabindex="-1" aria-labelledby="addClubModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addClubModalLabel">添加社团</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" id="club_name" class="form-control" placeholder="社团名称" required>
+                    <textarea id="description" class="form-control" placeholder="描述"></textarea>
+                    <input type="file" id="clubImage" class="form-control-file">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary" onclick="saveClub()">保存社团</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入Bootstrap和jQuery -->
     <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/4.5.3/js/bootstrap.min.js"></script>
     <script>
-        function loadClubs() {
+        $(document).ready(function() {
+            loadClubs(1); // 默认加载第一页
+        });
+
+        function loadClubs(page) {
             $.ajax({
-                url: '/clubs/',
+                url: '/clubs/page?page=' + page + '&size=8', // 每页显示8个社团
                 type: 'GET',
-                success: function(data) {
-                    let html = '<ul>';
-                    data.forEach(club => {
-                        html += `<li>${club.clubName} - <button onclick="deleteClub(${club.clubId})">Delete</button></li>`;
-                    });
-                    html += '</ul>';
-                    $('#clubsList').html(html);
+                success: function(response) {
+                    const tableBody = $('#clubsTable tbody');
+                    tableBody.empty();
+                    if (response.length === 0) {
+                        tableBody.append('<tr><td colspan="5" class="no-clubs">没有找到社团</td></tr>');
+                    } else {
+                        response.forEach(club => {
+                            let row = `<tr>
+                                <td><input type="checkbox" class="checkbox" data-club-id="${club.club_id}"></td>
+                                <td><a href="#" onclick="toggleMembersList(${club.club_id})">${club.club_name}</a></td>
+                                <td>${club.description}</td>
+                                <td>
+                                    <button class="btn btn-danger btn-sm" onclick="deleteClub(${club.club_id})">删除</button>
+                                </td>
+                                <td>
+                                    <img src="${club.image_url || 'placeholder.jpg'}" alt="社团图片" class="club-image"/>
+                                </td>
+                            </tr>`;
+                            row += `<tr class="members-list" id="members-${club.club_id}"><td colspan="5"><div>Loading members...</div></td></tr>`;
+                            tableBody.append(row);
+                        });
+                    }
+                    updatePagination(response.currentPage, response.totalPages);
                 },
                 error: function() {
-                    alert('加载错误');
+                    alert('加载社团信息失败');
                 }
             });
         }
 
-        function deleteClub(clubId) {
+        function toggleMembersList(club_id) {
+            let membersRow = $(`#members-${club_id}`);
+            if (membersRow.css('display') === 'none') {
+                membersRow.show();
+                $.ajax({
+                    url: `/members/by-club/${club_id}`,
+                    type: 'GET',
+                    success: function(members) {
+                        let membersContent = '<ul>';
+                        if (members.length === 0) {
+                            membersContent += '<li>No members found</li>';
+                        } else {
+                            members.forEach(member => {
+                                membersContent += `<li>${member.member_name}</li>`;
+                            });
+                        }
+                        membersContent += '</ul>';
+                        $(`#members-${club_id} td div`).html(membersContent);
+                    },
+                    error: function() {
+                        $(`#members-${club_id} td div`).html('Failed to load members.');
+                    }
+                });
+            } else {
+                membersRow.hide();
+            }
+        }
+
+        function updatePagination(currentPage, totalPages) {
+            const pagination = $('.pagination');
+            pagination.empty();
+            for (let i = 1; i <= totalPages; i++) {
+                const pageItem = `<li class="page-item ${i === currentPage ? 'active' : ''}">
+                                    <a class="page-link" href="#" onclick="loadClubs(${i})">${i}</a>
+                                  </li>`;
+                pagination.append(pageItem);
+            }
+        }
+
+        function saveClub() {
+            var formData = new FormData();
+            formData.append('club_name', $('#club_name').val());
+            formData.append('description', $('#description').val());
+            formData.append('file', $('#clubImage')[0].files[0]);
+
             $.ajax({
-                url: '/clubs/' + clubId,
-                type: 'DELETE',
-                success: function() {
-                    loadClubs();
+                url: '/clubs/',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    $('#addClubModal').modal('hide');
+                    loadClubs(1); // 重新加载社团列表
                 },
                 error: function() {
-                    alert('删除错误');
+                    alert('保存社团失败');
                 }
             });
+        }
+
+        function deleteClub(club_id) {
+            $.ajax({
+                url: '/clubs/' + club_id,
+                type: 'DELETE',
+                success: function() {
+                    loadClubs(1); // 重新加载社团列表
+                },
+                error: function() {
+                    alert('删除社团失败');
+                }
+            });
+        }
+
+        function batchDelete() {
+            var selectedClubs = [];
+            $('.checkbox:checked').each(function() {
+                selectedClubs.push($(this).data('club-id'));
+            });
+
+            $.ajax({
+                url: '/clubs/batch-delete',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(selectedClubs),
+                success: function() {
+                    loadClubs(1); // 重新加载社团列表
+                },
+                error: function() {
+                    alert('批量删除失败');
+                }
+            });
+        }
+
+        function toggleSelectAll(source) {
+            $('.checkbox').prop('checked', source.checked);
         }
     </script>
 </div>
