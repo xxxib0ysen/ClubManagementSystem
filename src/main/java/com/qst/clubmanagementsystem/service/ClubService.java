@@ -14,10 +14,12 @@ import java.util.List;
 public interface ClubService {
     void addClub(Club club);
     void updateClub(Club club);
-    void deleteClub(int clubId);
+    void deleteClub(int club_id);
+    void deleteClubsByIds(List<Integer> club_ids);
     List<Club> getAllClubs();
-    void updateClubImage(int clubId, String imageUrl);
+    void updateClubImage(int club_id, String image_url);
     List<ClubMemberCount> getClubMemberCounts();
     List<Club> getClubsPaginated(int pageNumber, int pageSize);
     List<Club> searchClubsByTerm(String searchTerm);
 }
+

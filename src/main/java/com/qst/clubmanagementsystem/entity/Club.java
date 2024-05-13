@@ -12,10 +12,11 @@ import lombok.Setter;
 @Setter
 @Getter
 public class Club {
-    private int clubId;
-    private String clubName;
+    private int club_id;
+    private String club_name;
     private String description;
-    private String imageUrl;
+    private String image_url;
+
 
 
 }

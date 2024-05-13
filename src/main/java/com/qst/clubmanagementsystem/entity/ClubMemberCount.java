@@ -12,11 +12,11 @@ import lombok.Setter;
 @Setter
 @Getter
 public class ClubMemberCount {
-    private String clubName;
+    private String club_name;
     private int memberCount;
 
-    public ClubMemberCount(String clubName, int memberCount) {
-        this.clubName = clubName;
+    public ClubMemberCount(String club_name, int memberCount) {
+        this.club_name = club_name;
         this.memberCount = memberCount;
     }
 

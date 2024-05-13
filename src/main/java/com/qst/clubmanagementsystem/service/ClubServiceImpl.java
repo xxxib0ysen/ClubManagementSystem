@@ -34,8 +34,16 @@ public class ClubServiceImpl implements ClubService {
 
     @Override
     @Transactional
-    public void deleteClub(int clubId) {
-        clubMapper.deleteClub(clubId);
+    public void deleteClub(int club_id) {
+        clubMapper.deleteClub(club_id);
+    }
+
+    @Transactional
+    @Override
+    public void deleteClubsByIds(List<Integer> club_ids) {
+        if (club_ids != null && !club_ids.isEmpty()) {
+            clubMapper.deleteClubs(club_ids);
+        }
     }
 
     @Override
@@ -45,8 +53,8 @@ public class ClubServiceImpl implements ClubService {
 
     @Override
     @Transactional
-    public void updateClubImage(int clubId, String imageUrl) {
-        clubMapper.updateClubImage(clubId, imageUrl);
+    public void updateClubImage(int club_id, String image_url) {
+        clubMapper.updateClubImage(club_id, image_url);
     }
 
     @Override
