@@ -12,10 +12,10 @@ import java.util.List;
 public interface MemberService {
     void addMember(Member member);
     void updateMember(Member member);
-    void deleteMember(int memberId);
+    void deleteMember(int member_id);
+    void deleteMembersByIds(List<Integer> member_ids);
     List<Member> getAllMembers();
-    List<Member> getMembersByClubId(int clubId);
-
-
-
+    List<Member> getMembersByclub_id(int club_id);
+    List<Member> searchMembersByTerm(String searchTerm);
+    List<Member> getMembersPaginated(int page, int size);
 }

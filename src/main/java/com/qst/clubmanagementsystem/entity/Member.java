@@ -12,8 +12,8 @@ import lombok.Setter;
 @Setter
 @Getter
 public class Member {
-    private int memberId;
-    private int clubId;
-    private String memberName;
+    private int member_id;
+    private int club_id;
+    private String member_name;
 
 }

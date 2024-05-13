@@ -4,6 +4,7 @@ import com.qst.clubmanagementsystem.dao.MemberMapper;
 import com.qst.clubmanagementsystem.entity.Member;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -19,18 +20,27 @@ public class MemberServiceImpl implements MemberService {
     private MemberMapper memberMapper;
 
     @Override
+    @Transactional
     public void addMember(Member member) {
         memberMapper.insertMember(member);
     }
 
     @Override
+    @Transactional
     public void updateMember(Member member) {
         memberMapper.updateMember(member);
     }
 
     @Override
-    public void deleteMember(int memberId) {
-        memberMapper.deleteMember(memberId);
+    @Transactional
+    public void deleteMember(int member_id) {
+        memberMapper.deleteMember(member_id);
+    }
+
+    @Override
+    @Transactional
+    public void deleteMembersByIds(List<Integer> member_ids) {
+        memberMapper.deleteMembers(member_ids);
     }
 
     @Override
@@ -39,7 +49,18 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public List<Member> getMembersByClubId(int clubId) {
-        return memberMapper.selectMembersByClubId(clubId);
+    public List<Member> getMembersByclub_id(int club_id) {
+        return memberMapper.selectMembersByclub_id(club_id);
+    }
+
+    @Override
+    public List<Member> searchMembersByTerm(String searchTerm) {
+        return memberMapper.searchMembers(searchTerm);
+    }
+
+    @Override
+    public List<Member> getMembersPaginated(int page, int size) {
+        int offset = (page - 1) * size;
+        return memberMapper.selectMembersPaginated(offset, size);
     }
 }

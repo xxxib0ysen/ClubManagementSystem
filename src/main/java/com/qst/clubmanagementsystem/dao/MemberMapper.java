@@ -12,41 +12,28 @@ import java.util.List;
  */
 @Mapper
 public interface MemberMapper {
-
-    // 插入一个新的会员，并自动回填主键
-    @Insert("INSERT INTO Members (club_id, member_name) VALUES (#{clubId}, #{memberName})")
-    @Options(useGeneratedKeys = true, keyProperty = "memberId")
+    @Insert("INSERT INTO Members (club_id, member_name) VALUES (#{club_id}, #{member_name})")
+    @Options(useGeneratedKeys = true, keyProperty = "member_id")
     void insertMember(Member member);
 
-    // 更新指定ID的会员信息
-    @Update("UPDATE Members SET club_id = #{clubId}, member_name = #{memberName} WHERE member_id = #{memberId}")
+    @Update("UPDATE Members SET club_id = #{club_id}, member_name = #{member_name} WHERE member_id = #{member_id}")
     void updateMember(Member member);
 
-    // 根据ID删除一个会员
-    @Delete("DELETE FROM Members WHERE member_id = #{memberId}")
-    void deleteMember(int memberId);
+    @Delete("DELETE FROM Members WHERE member_id = #{member_id}")
+    void deleteMember(int member_id);
 
-    // 批量删除会员
-    @Delete("<script>" +
-            "DELETE FROM Members WHERE member_id IN " +
-            "<foreach item='memberId' collection='list' open='(' separator=',' close=')'>" +
-            "#{memberId}" +
-            "</foreach>" +
-            "</script>")
-    void deleteMembers(List<Integer> memberIds);
+    @Delete("<script>DELETE FROM Members WHERE member_id IN <foreach item='member_id' collection='member_ids' open='(' separator=',' close=')'>#{member_id}</foreach></script>")
+    void deleteMembers(List<Integer> member_ids);
 
-    // 根据名称进行模糊查询
     @Select("SELECT * FROM Members WHERE member_name LIKE CONCAT('%', #{searchTerm}, '%')")
     List<Member> searchMembers(String searchTerm);
 
-    // 查询所有会员
     @Select("SELECT * FROM Members")
     List<Member> selectAllMembers();
 
-    @Select("SELECT * FROM Members WHERE club_id = #{clubId}")
-    List<Member> selectMembersByClubId(int clubId);
+    @Select("SELECT * FROM Members WHERE club_id = #{club_id}")
+    List<Member> selectMembersByclub_id(int club_id);
 
-    // 分页查询会员信息
     @Select("SELECT * FROM Members LIMIT #{offset}, #{limit}")
     List<Member> selectMembersPaginated(int offset, int limit);
 }
