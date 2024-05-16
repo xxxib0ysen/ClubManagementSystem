@@ -1,5 +1,7 @@
 package com.qst.clubmanagementsystem.service;
 
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import com.qst.clubmanagementsystem.dao.MemberMapper;
 import com.qst.clubmanagementsystem.entity.Member;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,8 +61,19 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public List<Member> getMembersPaginated(int page, int size) {
-        int offset = (page - 1) * size;
-        return memberMapper.selectMembersPaginated(offset, size);
+    public PageInfo<Member> getMembersPaginated(int page, int size, String searchTerm) {
+        PageHelper.startPage(page, size);
+        List<Member> members;
+        if (searchTerm == null || searchTerm.isEmpty()) {
+            members = memberMapper.selectAllMembers();
+        } else {
+            members = memberMapper.searchMembers(searchTerm);
+        }
+        return new PageInfo<>(members);
+    }
+
+    @Override
+    public Member getMemberById(int memberId) {
+        return memberMapper.getMemberById(memberId);
     }
 }

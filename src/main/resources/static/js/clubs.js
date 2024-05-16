@@ -1,11 +1,12 @@
-function loadClubs() {
+function loadClubs(pageNumber = 1) {
     var htmlContent = `
     <div class="row mb-3">
         <div class="col">
-            <input type="text" class="form-control" id="searchClubInput" placeholder="搜索社团">
+            <input type="text" class="form-control" id="searchClubInput" placeholder="搜索社团名称">
         </div>
         <div class="col-auto">
             <button class="btn btn-primary" onclick="searchClubs()">搜索</button>
+            <button class="btn btn-secondary" onclick="resetSearch()">重置</button>
         </div>
     </div>
     <div class="mb-3">
@@ -15,7 +16,7 @@ function loadClubs() {
     <table class="table">
         <thead>
             <tr>
-                <th scope="col"><input type="checkbox" id="selectAllClubs"></th>
+                <th scope="col"><input type="checkbox" id="selectAllClubs" onclick="toggleSelectAll(this)"></th>
                 <th scope="col">编号</th>
                 <th scope="col">图片</th>
                 <th scope="col">社团名称</th>
@@ -26,25 +27,38 @@ function loadClubs() {
         <tbody id="clubListTable">
             <!-- 社团数据将通过JavaScript动态加载 -->
         </tbody>
-    </table>`;
+    </table>
+    <nav>
+        <ul class="pagination" id="pagination">
+            <!-- 分页按钮将通过JavaScript动态加载 -->
+        </ul>
+    </nav>`;
     $('#content').html(htmlContent);
-    loadClubData(); // 调用函数加载并展示社团数据
+    loadClubData(pageNumber); // 调用函数加载并展示社团数据
 
     // 绑定新增社团按钮的点击事件
     $('#addClubButton').on('click', function() {
-        updateContent('addClub');
+        loadAddClubForm();
     });
 }
 
-function loadClubData(searchTerm = '') {
+function loadClubData(pageNumber = 1) {
+    const searchTerm = $('#searchClubInput').val().trim();
+
     $.ajax({
-        url: '/clubs/', // 根据你的后端API路径调整
+        url: '/clubs/page',
         method: 'GET',
-        data: { term: searchTerm }, // 将搜索词作为查询参数发送
-        success: function(data) {
+        data: {
+            page: pageNumber,
+            size: 5,
+            club_name: searchTerm
+        },
+        success: function(response) {
+            console.log(response); // 打印从后端返回的完整响应数据
             const tbody = $('#clubListTable');
             tbody.empty();
-            data.forEach(club => {
+
+            response.list.forEach(club => {
                 tbody.append(`
                 <tr>
                     <td><input type="checkbox" class="clubCheckbox" value="${club.club_id}"></td>
@@ -53,99 +67,95 @@ function loadClubData(searchTerm = '') {
                     <td>${club.club_name}</td>
                     <td>${club.description}</td>
                     <td>
-                        <button class="btn btn-info" onclick="editClub(${club.club_id})">编辑</button>
+                        <button class="btn btn-info" onclick="loadEditClubForm(${club.club_id})">编辑</button>
                         <button class="btn btn-danger" onclick="deleteClub(${club.club_id})">删除</button>
                     </td>
                 </tr>
-            `);
+                `);
             });
+
+            // 分页处理
+            const pagination = $('#pagination');
+            pagination.empty();
+            for (let i = 1; i <= response.pages; i++) {
+                pagination.append(`<li class="page-item ${i === pageNumber ? 'active' : ''}">
+                    <a class="page-link" href="#" onclick="loadClubs(${i})">${i}</a>
+                </li>`);
+            }
         },
         error: function() {
-            $('#clubListTable').html('<tr><td colspan="6">加载数据失败，请稍后重试。</td></tr>');
+            $('#clubListTable').html('<tr><td colspan="5">加载数据失败，请稍后重试。</td></tr>');
         }
     });
 }
-
 function searchClubs() {
-    var searchTerm = $('#searchClubInput').val().trim(); // 获取输入值并去除首尾空白
-    loadClubData(searchTerm); // 将搜索词传递给加载数据的函数
+    loadClubs(1); // 重新加载数据，从第一页开始
 }
 
-// 创建编辑社团模态框的HTML和JavaScript代码
-var editClubModalHtml = `
-<!-- 编辑社团模态框 -->
-<div class="modal fade" id="editClubModal" tabindex="-1" role="dialog" aria-labelledby="editClubModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="editClubModalLabel">编辑社团信息</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="editClubForm">
-                    <input type="hidden" id="club_id" name="club_id">
-                    <div class="form-group">
-                        <label for="clubName">社团名称</label>
-                        <input type="text" class="form-control" id="clubName" name="clubName" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="description">描述</label>
-                        <textarea class="form-control" id="description" name="description" rows="3"></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary">保存</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-`;
+function resetSearch() {
+    $('#searchClubInput').val(''); // 清空搜索输入框
+    loadClubs(); // 重新加载数据
+}
 
-// 将编辑社团模态框插入到页面中
-$('body').append(editClubModalHtml);
+function toggleSelectAll(selectAllCheckbox) {
+    const checkboxes = $('.clubCheckbox');
+    checkboxes.prop('checked', selectAllCheckbox.checked);
+}
 
-// 编辑社团功能
-function editClub(club_id) {
-    // 发送Ajax请求获取特定ID的社团信息
+function loadEditClubForm(club_id) {
     $.ajax({
         url: '/clubs/' + club_id,
         method: 'GET',
         success: function(club) {
-            // 将社团信息填充到模态框中
-            $('#editClubModal #club_id').val(club.club_id);
-            $('#editClubModal #clubName').val(club.club_name);
-            $('#editClubModal #description').val(club.description);
-            $('#editClubModal').modal('show'); // 显示模态框
+            $('#content').html(`
+            <h2>编辑社团</h2>
+            <form id="editClubForm" enctype="multipart/form-data">
+                <input type="hidden" id="club_id" name="club_id" value="${club.club_id}">
+                <div class="form-group">
+                    <label for="club_name">社团名称</label>
+                    <input type="text" class="form-control" id="club_name" name="club_name" value="${club.club_name}" required>
+                </div>
+                <div class="form-group">
+                    <label for="description">描述</label>
+                    <textarea class="form-control" id="description" name="description" rows="3">${club.description}</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="image_url">社团图片</label>
+                    <input type="file" class="form-control-file" id="image_url" name="image_url">
+                    <img src="${club.image_url}" alt="${club.club_name}" style="width: 100px; margin-top: 10px;">
+                </div>
+                <button type="submit" class="btn btn-primary">保存</button>
+            </form>
+            `);
+
+            $('#editClubForm').submit(function(e) {
+                e.preventDefault(); // 阻止默认的表单提交行为
+
+                var formData = new FormData(this); // 创建 FormData 对象来上传文件
+                formData.append('club_id', $('#club_id').val());
+
+                $.ajax({
+                    url: '/clubs/' + $('#club_id').val(),
+                    method: 'PUT',
+                    data: formData,
+                    processData: false, // 不处理数据
+                    contentType: false, // 不设置内容类型
+                    success: function(response) {
+                        alert('社团信息更新成功！');
+                        loadClubs(); // 更新成功后重新加载社团列表
+                    },
+                    error: function(xhr, status, error) {
+                        alert('社团信息更新失败，请稍后再试。');
+                        console.error(xhr.responseText);
+                    }
+                });
+            });
         },
         error: function() {
             alert('获取社团信息失败，请稍后再试。');
         }
     });
 }
-
-// 监听编辑表单的提交事件
-$('#editClubForm').submit(function(e) {
-    e.preventDefault(); // 阻止表单默认提交行为
-
-    var formData = $(this).serialize(); // 获取表单数据
-
-    // 发送Ajax请求更新社团信息
-    $.ajax({
-        url: '/clubs/' + $('#club_id').val(),
-        method: 'PUT',
-        data: formData,
-        success: function() {
-            alert('社团信息更新成功！');
-            $('#editClubModal').modal('hide'); // 隐藏模态框
-            loadClubData(); // 重新加载社团数据
-        },
-        error: function() {
-            alert('社团信息更新失败，请稍后再试。');
-        }
-    });
-});
-
 function deleteClub(club_id) {
     if (confirm('确定要删除这个社团吗？')) {
         $.ajax({
@@ -153,7 +163,7 @@ function deleteClub(club_id) {
             method: 'DELETE',
             success: function() {
                 alert('社团删除成功！');
-                loadClubData(); // 重新加载社团数据
+                loadClubs(); // 重新加载社团数据
             },
             error: function() {
                 alert('删除失败，请稍后再试。');
@@ -176,7 +186,7 @@ function batchDeleteClubs() {
             contentType: 'application/json',
             success: function() {
                 alert('批量删除社团成功！');
-                loadClubData(); // 重新加载社团数据
+                loadClubs(); // 重新加载社团数据
             },
             error: function() {
                 alert('批量删除失败，请稍后再试。');
@@ -188,27 +198,28 @@ function batchDeleteClubs() {
 function loadAddClubForm() {
     $('#content').html(`
     <h2>添加社团</h2>
-    <form id="addClubForm">
+    <form id="addClubForm" enctype="multipart/form-data">
         <div class="form-group">
-            <label for="clubName">社团名称</label>
-            <input type="text" class="form-control" id="clubName" name="clubName" required>
+            <label for="club_name">社团名称</label>
+            <input type="text" class="form-control" id="club_name" name="club_name" required>
         </div>
         <div class="form-group">
             <label for="description">描述</label>
             <textarea class="form-control" id="description" name="description" rows="3"></textarea>
         </div>
         <div class="form-group">
-            <label for="clubImage">社团图片</label>
-            <input type="file" class="form-control-file" id="clubImage" name="clubImage">
+            <label for="image_url">社团图片</label>
+            <input type="file" class="form-control-file" id="image_url" name="image_url">
         </div>
         <button type="submit" class="btn btn-primary">提交</button>
     </form>
-`);
+    `);
 
     $('#addClubForm').submit(function(e) {
         e.preventDefault(); // 阻止默认的表单提交行为
 
         var formData = new FormData(this); // 创建 FormData 对象来上传文件
+
         $.ajax({
             url: '/clubs/',
             method: 'POST',

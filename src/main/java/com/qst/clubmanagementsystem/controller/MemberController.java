@@ -1,8 +1,11 @@
 package com.qst.clubmanagementsystem.controller;
 
+import com.github.pagehelper.PageInfo;
 import com.qst.clubmanagementsystem.entity.Member;
 import com.qst.clubmanagementsystem.service.MemberService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -64,7 +67,18 @@ public class MemberController {
 
     // 分页查询会员
     @GetMapping("/page")
-    public List<Member> getMembersPaginated(@RequestParam("page") int page, @RequestParam("size") int size) {
-        return memberService.getMembersPaginated(page, size);
+    public PageInfo<Member> getMembersPaginated(@RequestParam("page") int page, @RequestParam("size") int size, @RequestParam(required = false) String searchTerm) {
+        return memberService.getMembersPaginated(page, size, searchTerm);
+    }
+
+
+    @GetMapping("/{member_id}")
+    public ResponseEntity<Member> getMemberById(@PathVariable int member_id) {
+        Member member = memberService.getMemberById(member_id);
+        if (member != null) {
+            return ResponseEntity.ok(member);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
     }
 }

@@ -23,17 +23,20 @@ public interface MemberMapper {
     void deleteMember(int member_id);
 
     @Delete("<script>DELETE FROM Members WHERE member_id IN <foreach item='member_id' collection='member_ids' open='(' separator=',' close=')'>#{member_id}</foreach></script>")
-    void deleteMembers(List<Integer> member_ids);
+    void deleteMembers(@Param("member_ids") List<Integer> member_ids);
 
-    @Select("SELECT * FROM Members WHERE member_name LIKE CONCAT('%', #{searchTerm}, '%')")
-    List<Member> searchMembers(String searchTerm);
+    @Select("SELECT m.*, c.club_name FROM Members m JOIN Clubs c ON m.club_id = c.club_id WHERE m.member_name LIKE CONCAT('%', #{searchTerm}, '%')")
+    List<Member> searchMembers(@Param("searchTerm") String searchTerm);
 
-    @Select("SELECT * FROM Members")
+    @Select("SELECT m.*, c.club_name FROM Members m JOIN Clubs c ON m.club_id = c.club_id")
     List<Member> selectAllMembers();
 
-    @Select("SELECT * FROM Members WHERE club_id = #{club_id}")
-    List<Member> selectMembersByclub_id(int club_id);
+    @Select("SELECT m.*, c.club_name FROM Members m JOIN Clubs c ON m.club_id = c.club_id WHERE m.club_id = #{club_id}")
+    List<Member> selectMembersByclub_id(@Param("club_id") int club_id);
 
-    @Select("SELECT * FROM Members LIMIT #{offset}, #{limit}")
-    List<Member> selectMembersPaginated(int offset, int limit);
+    @Select("SELECT m.*, c.club_name FROM Members m JOIN Clubs c ON m.club_id = c.club_id LIMIT #{offset}, #{limit}")
+    List<Member> selectMembersPaginated(@Param("offset") int offset, @Param("limit") int limit);
+
+    @Select("SELECT m.*, c.club_name FROM Members m JOIN Clubs c ON m.club_id = c.club_id WHERE m.member_id = #{member_id}")
+    Member getMemberById(@Param("member_id") int memberId);
 }

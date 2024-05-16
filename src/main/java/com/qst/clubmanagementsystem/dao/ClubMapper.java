@@ -1,5 +1,7 @@
 package com.qst.clubmanagementsystem.dao;
 
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.qst.clubmanagementsystem.entity.Club;
 import com.qst.clubmanagementsystem.entity.ClubMemberCount;
 import org.apache.ibatis.annotations.*;
@@ -24,20 +26,21 @@ public interface ClubMapper {
     void deleteClub(int club_id);
 
     @Delete("<script>DELETE FROM Clubs WHERE club_id IN <foreach item='club_id' collection='club_ids' open='(' separator=',' close=')'>#{club_id}</foreach></script>")
-    void deleteClubs(List<Integer> club_ids);
+    void deleteClubs(@Param("club_ids") List<Integer> club_ids);
 
-    @Select("SELECT * FROM Clubs WHERE club_name LIKE CONCAT('%', #{searchTerm}, '%')")
-    List<Club> searchClubs(String searchTerm);
+    @Select("SELECT * FROM Clubs WHERE club_name LIKE CONCAT('%', #{club_name}, '%')")
+    Page<Club> searchClubsByName(@Param("club_name") String club_name);
 
     @Select("SELECT * FROM Clubs")
-    List<Club> selectAllClubs();
+    Page<Club> selectAllClubs();
 
-    @Select("SELECT * FROM Clubs LIMIT #{offset}, #{limit}")
-    List<Club> selectClubsPaginated(int offset, int limit);
 
     @Update("UPDATE Clubs SET image_url = #{image_url} WHERE club_id = #{club_id}")
-    void updateClubImage(int club_id, String image_url);
+    void updateClubImage(@Param("club_id") int club_id, @Param("image_url") String image_url);
 
     @Select("SELECT c.club_name, COUNT(m.member_id) AS member_count FROM Clubs c LEFT JOIN Members m ON c.club_id = m.club_id GROUP BY c.club_id, c.club_name ORDER BY member_count DESC")
     List<ClubMemberCount> getClubMemberCounts();
+
+    @Select("SELECT * FROM Clubs WHERE club_id = #{club_id}")
+    Club getClubById(@Param("club_id") int club_id);
 }

@@ -1,4 +1,4 @@
-function loadMembers(clubId = null) {
+function loadMembers(pageNumber = 1) {
     var htmlContent = `
     <div class="row mb-3">
         <div class="col">
@@ -6,6 +6,7 @@ function loadMembers(clubId = null) {
         </div>
         <div class="col-auto">
             <button class="btn btn-primary" onclick="searchMembers()">搜索</button>
+            <button class="btn btn-secondary" onclick="resetSearch()">重置</button>
         </div>
     </div>
     <div class="mb-3">
@@ -15,7 +16,7 @@ function loadMembers(clubId = null) {
     <table class="table">
         <thead>
             <tr>
-                <th scope="col"><input type="checkbox" id="selectAllMembers"></th>
+                <th scope="col"><input type="checkbox" id="selectAllMembers" onclick="toggleSelectAll(this, 'memberCheckbox')"></th>
                 <th scope="col">成员ID</th>
                 <th scope="col">成员名</th>
                 <th scope="col">所属社团</th>
@@ -25,40 +26,60 @@ function loadMembers(clubId = null) {
         <tbody id="memberListTable">
             <!-- 会员数据将通过JavaScript动态加载 -->
         </tbody>
-    </table>`;
+    </table>
+    <nav>
+        <ul class="pagination" id="pagination">
+            <!-- 分页按钮将通过JavaScript动态加载 -->
+        </ul>
+    </nav>`;
     $('#content').html(htmlContent);
-    loadMemberData(clubId); // 调用函数加载并展示会员数据
+    loadMemberData(pageNumber); // 调用函数加载并展示会员数据
 
     // 绑定新增会员按钮的点击事件
     $('#addMemberButton').on('click', function() {
-        updateContent('addMember');
+        loadAddMemberForm();
     });
 }
 
-function loadMemberData(clubId = null, searchTerm = '') {
-    let url = clubId ? `/members/by-club/${clubId}` : '/members/';
-    let data = clubId ? {} : { term: searchTerm };
+function loadMemberData(pageNumber = 1) {
+    const searchTerm = $('#searchMemberInput').val().trim();
+
     $.ajax({
-        url: url,
+        url: '/members/page',
         method: 'GET',
-        data: data, // 将搜索词作为查询参数发送
-        success: function(data) {
+        data: {
+            page: pageNumber,
+            size: 5,
+            searchTerm: searchTerm
+        },
+        success: function(response) {
+            console.log(response); // 打印从后端返回的完整响应数据
             const tbody = $('#memberListTable');
             tbody.empty();
-            data.forEach(member => {
+
+            response.list.forEach(member => {
                 tbody.append(`
                 <tr>
                     <td><input type="checkbox" class="memberCheckbox" value="${member.member_id}"></td>
                     <td>${member.member_id}</td>
                     <td>${member.member_name}</td>
-                    <td>${member.club_id}</td>
+                    <td>${member.club_name}</td>
                     <td>
                         <button class="btn btn-info" onclick="editMember(${member.member_id})">编辑</button>
                         <button class="btn btn-danger" onclick="deleteMember(${member.member_id})">删除</button>
                     </td>
                 </tr>
-            `);
+                `);
             });
+
+            // 分页处理
+            const pagination = $('#pagination');
+            pagination.empty();
+            for (let i = 1; i <= response.pages; i++) {
+                pagination.append(`<li class="page-item ${i === pageNumber ? 'active' : ''}">
+                    <a class="page-link" href="#" onclick="loadMembers(${i})">${i}</a>
+                </li>`);
+            }
         },
         error: function() {
             $('#memberListTable').html('<tr><td colspan="5">加载数据失败，请稍后重试。</td></tr>');
@@ -67,31 +88,17 @@ function loadMemberData(clubId = null, searchTerm = '') {
 }
 
 function searchMembers() {
-    var searchTerm = $('#searchMemberInput').val().trim(); // 获取输入值并去除首尾空白
-    loadMemberData(null, searchTerm); // 将搜索词传递给加载数据的函数
+    loadMembers(1); // 重新加载数据，从第一页开始
 }
 
-function batchDeleteMembers() {
-    var selectedMemberIds = $('.memberCheckbox:checked').map(function() { return $(this).val(); }).get();
-    if (selectedMemberIds.length === 0) {
-        alert('请选择要删除的会员。');
-        return;
-    }
-    if (confirm('确定要删除选中的会员吗？')) {
-        $.ajax({
-            url: '/members/batch-delete',
-            method: 'DELETE',
-            data: JSON.stringify(selectedMemberIds),
-            contentType: 'application/json',
-            success: function() {
-                alert('批量删除会员成功！');
-                loadMemberData(); // 重新加载会员数据
-            },
-            error: function() {
-                alert('批量删除失败，请稍后再试。');
-            }
-        });
-    }
+function resetSearch() {
+    $('#searchMemberInput').val(''); // 清空搜索输入框
+    loadMembers(); // 重新加载数据
+}
+
+function toggleSelectAll(selectAllCheckbox, checkboxClass) {
+    const checkboxes = $(`.${checkboxClass}`);
+    checkboxes.prop('checked', selectAllCheckbox.checked);
 }
 
 function loadAddMemberForm() {
@@ -108,17 +115,21 @@ function loadAddMemberForm() {
         </div>
         <button type="submit" class="btn btn-primary">提交</button>
     </form>
-`);
+    `);
 
     $('#addMemberForm').submit(function(e) {
         e.preventDefault(); // 阻止默认的表单提交行为
 
-        var formData = $(this).serialize(); // 获取表单数据
+        var formData = {
+            member_name: $('#memberName').val(),
+            club_id: $('#clubId').val()
+        };
 
         $.ajax({
             url: '/members/',
             method: 'POST',
-            data: formData,
+            contentType: 'application/json', // 设置内容类型
+            data: JSON.stringify(formData), // 序列化数据
             success: function(response) {
                 alert('会员添加成功！');
                 loadMembers(); // 添加成功后重新加载会员列表
@@ -130,24 +141,24 @@ function loadAddMemberForm() {
         });
     });
 }
-
-function editMember(memberId) {
-    // 显示编辑会员表单
+function editMember(member_id) {
+    // 发送Ajax请求获取特定ID的会员信息
     $.ajax({
-        url: '/members/' + memberId,
+        url: '/members/' + member_id,
         method: 'GET',
         success: function(member) {
+            // 将会员信息填充到表单中
             $('#content').html(`
             <h2>编辑会员</h2>
             <form id="editMemberForm">
                 <input type="hidden" id="member_id" name="member_id" value="${member.member_id}">
                 <div class="form-group">
-                    <label for="memberName">会员名称</label>
-                    <input type="text" class="form-control" id="memberName" name="memberName" value="${member.member_name}" required>
+                    <label for="member_name">会员名称</label>
+                    <input type="text" class="form-control" id="member_name" name="member_name" value="${member.member_name}" required>
                 </div>
                 <div class="form-group">
-                    <label for="clubId">所属社团ID</label>
-                    <input type="text" class="form-control" id="clubId" name="clubId" value="${member.club_id}" required>
+                    <label for="club_id">所属社团ID</label>
+                    <input type="text" class="form-control" id="club_id" name="club_id" value="${member.club_id}" required>
                 </div>
                 <button type="submit" class="btn btn-primary">保存</button>
             </form>
@@ -156,18 +167,24 @@ function editMember(memberId) {
             $('#editMemberForm').submit(function(e) {
                 e.preventDefault(); // 阻止默认的表单提交行为
 
-                var formData = $(this).serialize(); // 获取表单数据
+                var formData = {
+                    member_id: $('#member_id').val(),
+                    member_name: $('#member_name').val(),
+                    club_id: $('#club_id').val()
+                };
 
+                // 发送Ajax请求更新会员信息
                 $.ajax({
                     url: '/members/' + $('#member_id').val(),
                     method: 'PUT',
-                    data: formData,
+                    contentType: 'application/json', // 设置内容类型
+                    data: JSON.stringify(formData), // 序列化数据
                     success: function(response) {
-                        alert('会员更新成功！');
+                        alert('会员信息更新成功！');
                         loadMembers(); // 更新成功后重新加载会员列表
                     },
                     error: function(xhr, status, error) {
-                        alert('更新会员失败，请稍后重试。');
+                        alert('会员信息更新失败，请稍后再试。');
                         console.error(xhr.responseText);
                     }
                 });
@@ -179,10 +196,10 @@ function editMember(memberId) {
     });
 }
 
-function deleteMember(memberId) {
+function deleteMember(member_id) {
     if (confirm('确定要删除这个会员吗？')) {
         $.ajax({
-            url: `/members/${memberId}`,
+            url: `/members/${member_id}`,
             method: 'DELETE',
             success: function() {
                 alert('会员删除成功！');
@@ -190,6 +207,29 @@ function deleteMember(memberId) {
             },
             error: function() {
                 alert('删除失败，请稍后再试。');
+            }
+        });
+    }
+}
+
+function batchDeleteMembers() {
+    var selectedmember_ids = $('.memberCheckbox:checked').map(function() { return $(this).val(); }).get();
+    if (selectedmember_ids.length === 0) {
+        alert('请选择要删除的会员。');
+        return;
+    }
+    if (confirm('确定要删除选中的会员吗？')) {
+        $.ajax({
+            url: '/members/batch-delete',
+            method: 'DELETE',
+            data: JSON.stringify(selectedmember_ids),
+            contentType: 'application/json',
+            success: function() {
+                alert('批量删除会员成功！');
+                loadMembers(); // 重新加载会员数据
+            },
+            error: function() {
+                alert('批量删除失败，请稍后再试。');
             }
         });
     }

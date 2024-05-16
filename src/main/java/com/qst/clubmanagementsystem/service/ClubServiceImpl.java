@@ -1,5 +1,7 @@
 package com.qst.clubmanagementsystem.service;
 
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import com.qst.clubmanagementsystem.dao.ClubMapper;
 import com.qst.clubmanagementsystem.entity.Club;
 import com.qst.clubmanagementsystem.entity.ClubMemberCount;
@@ -38,8 +40,8 @@ public class ClubServiceImpl implements ClubService {
         clubMapper.deleteClub(club_id);
     }
 
-    @Transactional
     @Override
+    @Transactional
     public void deleteClubsByIds(List<Integer> club_ids) {
         if (club_ids != null && !club_ids.isEmpty()) {
             clubMapper.deleteClubs(club_ids);
@@ -62,14 +64,26 @@ public class ClubServiceImpl implements ClubService {
         return clubMapper.getClubMemberCounts();
     }
 
+
     @Override
-    public List<Club> getClubsPaginated(int pageNumber, int pageSize) {
-        int offset = (pageNumber - 1) * pageSize;
-        return clubMapper.selectClubsPaginated(offset, pageSize);
+    public PageInfo<Club> getClubsPaginated(int pageNumber, int pageSize, String club_name) {
+        PageHelper.startPage(pageNumber, pageSize);
+        List<Club> clubs;
+        if (club_name == null || club_name.isEmpty()) {
+            clubs = clubMapper.selectAllClubs();
+        } else {
+            clubs = clubMapper.searchClubsByName(club_name);
+        }
+        return new PageInfo<>(clubs);
     }
 
     @Override
-    public List<Club> searchClubsByTerm(String searchTerm) {
-        return clubMapper.searchClubs(searchTerm);
+    public List<Club> searchClubsByName(String club_name) {
+        return clubMapper.searchClubsByName(club_name);
+    }
+
+    @Override
+    public Club getClubById(int club_id) {
+        return clubMapper.getClubById(club_id);
     }
 }

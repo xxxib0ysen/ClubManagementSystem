@@ -1,5 +1,6 @@
 package com.qst.clubmanagementsystem.service;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,21 +18,13 @@ import java.util.UUID;
 @Service
 public class FileStorageService {
 
-    private final Path fileStorageLocation = Paths.get("src/main/resources/static/uploads").toAbsolutePath().normalize();
-
-    public FileStorageService() {
-        try {
-            Files.createDirectories(this.fileStorageLocation);
-        } catch (Exception ex) {
-            throw new RuntimeException("Could not create the directory where the uploaded files will be stored.", ex);
-        }
-    }
+    @Value("${file.upload-dir}")
+    private String fileStorageLocation;
 
     public String storeFile(MultipartFile file) {
-        // Normalize file name
         String fileName = UUID.randomUUID().toString() + "-" + file.getOriginalFilename();
         try {
-            Path targetLocation = this.fileStorageLocation.resolve(fileName);
+            Path targetLocation = Paths.get(fileStorageLocation).resolve(fileName);
             Files.copy(file.getInputStream(), targetLocation);
             return fileName;
         } catch (Exception ex) {

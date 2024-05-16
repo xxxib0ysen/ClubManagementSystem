@@ -15,5 +15,5 @@ public class Member {
     private int member_id;
     private int club_id;
     private String member_name;
-
+    private String club_name;
 }

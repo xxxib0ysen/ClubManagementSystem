@@ -1,5 +1,6 @@
 package com.qst.clubmanagementsystem.service;
 
+import com.github.pagehelper.PageInfo;
 import com.qst.clubmanagementsystem.entity.Member;
 
 import java.util.List;
@@ -17,5 +18,6 @@ public interface MemberService {
     List<Member> getAllMembers();
     List<Member> getMembersByclub_id(int club_id);
     List<Member> searchMembersByTerm(String searchTerm);
-    List<Member> getMembersPaginated(int page, int size);
+    PageInfo<Member> getMembersPaginated(int page, int size, String searchTerm);
+    Member getMemberById(int memberId);
 }
