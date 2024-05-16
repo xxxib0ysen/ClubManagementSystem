@@ -1,15 +1,15 @@
-function loadMembers(pageNumber = 1, club_id = null) {
+function loadMembers(pageNumber = 1, club_id = null, searchTerm = '') {
     var htmlContent = `
     <div class="row">
         <div class="col-md-2">
             <div class="list-group" id="clubFilterMenu">
-                <a href="#" class="list-group-item list-group-item-action" onclick="loadMembers(1)">所有社团</a>
+                
             </div>
         </div>
         <div class="col-md-10">
             <div class="row mb-3">
                 <div class="col">
-                    <input type="text" class="form-control" id="searchMemberInput" placeholder="搜索会员">
+                    <input type="text" class="form-control" id="searchMemberInput" placeholder="搜索会员名称" value="${searchTerm}">
                 </div>
                 <div class="col-auto">
                     <button class="btn btn-primary" onclick="searchMembers()">搜索</button>
@@ -43,20 +43,24 @@ function loadMembers(pageNumber = 1, club_id = null) {
     </div>`;
     $('#content').html(htmlContent);
     loadClubFilterMenu(); // 加载社团筛选菜单
-    loadMemberData(pageNumber, club_id); // 调用函数加载并展示会员数据
+    loadMemberData(pageNumber, club_id, searchTerm); // 调用函数加载并展示会员数据，并传递搜索词
 
     // 绑定新增会员按钮的点击事件
     $('#addMemberButton').on('click', function() {
         loadAddMemberForm();
     });
 }
-
 function loadClubFilterMenu() {
+    const clubFilterMenu = $('#clubFilterMenu');
+    clubFilterMenu.empty(); // Clear existing items
+    clubFilterMenu.append(`
+        <a href="#" class="list-group-item list-group-item-action" onclick="loadMembers(1)">所有社团</a>
+    `); // 添加“所有社团”选项
+
     $.ajax({
         url: '/clubs/',
         method: 'GET',
         success: function(clubs) {
-            const clubFilterMenu = $('#clubFilterMenu');
             clubs.forEach(club => {
                 clubFilterMenu.append(`
                     <a href="#" class="list-group-item list-group-item-action" onclick="filterMembersByClub(${club.club_id})">${club.club_name}</a>
@@ -68,17 +72,15 @@ function loadClubFilterMenu() {
         }
     });
 }
-
 function filterMembersByClub(club_id) {
-    loadMembers(1, club_id);
+    const searchTerm = $('#searchMemberInput').val().trim();
+    loadMembers(1, club_id, searchTerm);
 }
 
-function loadMemberData(pageNumber = 1, club_id = null) {
-    const searchTerm = $('#searchMemberInput').val().trim();
-
+function loadMemberData(pageNumber = 1, club_id = null, searchTerm = '') {
     let requestData = {
         page: pageNumber,
-        size: 6,
+        size: 5,
         searchTerm: searchTerm
     };
 
@@ -91,7 +93,6 @@ function loadMemberData(pageNumber = 1, club_id = null) {
         method: 'GET',
         data: requestData,
         success: function(response) {
-            console.log(response); // 打印从后端返回的完整响应数据
             const tbody = $('#memberListTable');
             tbody.empty();
 
@@ -115,7 +116,7 @@ function loadMemberData(pageNumber = 1, club_id = null) {
             pagination.empty();
             for (let i = 1; i <= response.pages; i++) {
                 pagination.append(`<li class="page-item ${i === pageNumber ? 'active' : ''}">
-                    <a class="page-link" href="#" onclick="loadMembers(${i}, ${club_id})">${i}</a>
+                    <a class="page-link" href="#" onclick="loadMembers(${i}, ${club_id}, '${searchTerm}')">${i}</a>
                 </li>`);
             }
         },
@@ -126,7 +127,8 @@ function loadMemberData(pageNumber = 1, club_id = null) {
 }
 
 function searchMembers() {
-    loadMembers(1); // 重新加载数据，从第一页开始
+    const searchTerm = $('#searchMemberInput').val().trim();
+    loadMembers(1, null, searchTerm); // 重新加载数据，从第一页开始，并传递搜索词
 }
 
 function resetSearch() {

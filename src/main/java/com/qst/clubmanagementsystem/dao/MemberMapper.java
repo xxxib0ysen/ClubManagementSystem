@@ -28,6 +28,7 @@ public interface MemberMapper {
     @Select("SELECT m.*, c.club_name FROM Members m JOIN Clubs c ON m.club_id = c.club_id WHERE m.member_name LIKE CONCAT('%', #{searchTerm}, '%')")
     List<Member> searchMembers(@Param("searchTerm") String searchTerm);
 
+
     @Select("SELECT m.*, c.club_name FROM Members m JOIN Clubs c ON m.club_id = c.club_id")
     List<Member> selectAllMembers();
 
