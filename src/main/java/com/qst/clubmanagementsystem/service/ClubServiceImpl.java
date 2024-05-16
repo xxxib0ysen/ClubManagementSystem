@@ -57,14 +57,19 @@ public class ClubServiceImpl implements ClubService {
     @Override
     @Transactional
     public void updateClubImage(int club_id, String image_url) {
-        clubMapper.updateClubImage(club_id, image_url);
+        Club club = clubMapper.getClubById(club_id);
+        if (club != null) {
+            club.setImage_url(image_url);
+            clubMapper.updateClubImage(club_id, image_url);
+        } else {
+            throw new RuntimeException("Club not found with id: " + club_id);
+        }
     }
 
     @Override
     public List<ClubMemberCount> getClubMemberCounts() {
         return clubMapper.getClubMemberCounts();
     }
-
 
     @Override
     public PageInfo<Club> getClubsPaginated(int pageNumber, int pageSize, String club_name) {
@@ -82,6 +87,7 @@ public class ClubServiceImpl implements ClubService {
     public Page<Club> searchClubsByName(String club_name) {
         return clubMapper.searchClubsByName(club_name);
     }
+
     @Override
     public Club getClubById(int club_id) {
         return clubMapper.getClubById(club_id);

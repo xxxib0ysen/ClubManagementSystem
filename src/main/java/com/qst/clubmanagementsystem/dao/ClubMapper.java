@@ -34,7 +34,6 @@ public interface ClubMapper {
     @Select("SELECT * FROM Clubs")
     Page<Club> selectAllClubs();
 
-
     @Update("UPDATE Clubs SET image_url = #{image_url} WHERE club_id = #{club_id}")
     void updateClubImage(@Param("club_id") int club_id, @Param("image_url") String image_url);
 

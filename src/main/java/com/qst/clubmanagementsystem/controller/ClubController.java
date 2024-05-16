@@ -17,12 +17,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
-/**
- * @Description
- * @Author xxxib0ysen
- * @Date 2024/5/6
- */
-
 @RestController
 @RequestMapping("/clubs")
 public class ClubController {
@@ -33,10 +27,9 @@ public class ClubController {
 
     private static final Logger logger = LoggerFactory.getLogger(ClubController.class);
 
-
     // 添加社团
     @PostMapping("/")
-    public ResponseEntity<Void> addClub(@RequestParam("club_name") String club_name,
+    public ResponseEntity<Club> addClub(@RequestParam("club_name") String club_name,
                                         @RequestParam("description") String description,
                                         @RequestParam(value = "club_image", required = false) MultipartFile file) {
         Club club = new Club();
@@ -45,20 +38,46 @@ public class ClubController {
 
         if (file != null && !file.isEmpty()) {
             String fileName = fileStorageService.storeFile(file);
-            String image_url = "/static/uploads/" + fileName;  // 生成相对路径
+            String image_url = "/uploads/" + fileName;  // 生成相对路径
             club.setImage_url(image_url);
         }
 
         clubService.addClub(club);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(club);
     }
 
     // 更新社团信息
     @PutMapping("/{club_id}")
-    public ResponseEntity<Void> updateClub(@PathVariable int club_id, @RequestBody Club club) {
+    public ResponseEntity<Club> updateClub(@PathVariable int club_id,
+                                           @RequestParam("club_name") String club_name,
+                                           @RequestParam("description") String description,
+                                           @RequestParam(value = "club_image", required = false) MultipartFile file) {
+        Club club = new Club();
         club.setClub_id(club_id);
+        club.setClub_name(club_name);
+        club.setDescription(description);
+
+        if (file != null && !file.isEmpty()) {
+            String fileName = fileStorageService.storeFile(file);
+            String image_url = "/uploads/" + fileName;  // 生成相对路径
+            club.setImage_url(image_url);
+        }
+
         clubService.updateClub(club);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(club);
+    }
+
+
+    // 更新社团图片
+    @PutMapping("/{club_id}/updateImage")
+    public ResponseEntity<Void> updateClubImage(@PathVariable int club_id, @RequestParam("club_image") MultipartFile file) {
+        if (file != null && !file.isEmpty()) {
+            String fileName = fileStorageService.storeFile(file);
+            String image_url = "/uploads/" + fileName;  // 生成相对路径
+            clubService.updateClubImage(club_id, image_url);
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.badRequest().build();
     }
 
     // 删除指定ID的社团
@@ -82,15 +101,6 @@ public class ClubController {
         return ResponseEntity.ok(clubs);
     }
 
-    // 上传社团图片并更新图片URL
-    @PostMapping("/{club_id}/uploadImage")
-    public ResponseEntity<String> uploadClubImage(@PathVariable int club_id, @RequestParam("file") MultipartFile file) {
-        String fileName = fileStorageService.storeFile(file);
-        String image_url = "/static/uploads/" + fileName;  // 生成相对路径
-        clubService.updateClubImage(club_id, image_url);
-        return ResponseEntity.ok("Image uploaded successfully: " + image_url);
-    }
-
     // 获取社团成员数量统计
     @GetMapping("/member-counts")
     public ResponseEntity<List<ClubMemberCount>> getClubMemberCounts() {
@@ -109,6 +119,7 @@ public class ClubController {
         Page<Club> clubs = clubService.searchClubsByName(club_name);
         return new PageInfo<>(clubs);
     }
+
     @GetMapping("/{club_id}")
     public ResponseEntity<Club> getClubById(@PathVariable int club_id) {
         Club club = clubService.getClubById(club_id);

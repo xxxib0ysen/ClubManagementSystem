@@ -16,7 +16,7 @@ function loadClubs(pageNumber = 1, searchTerm = '') {
     <table class="table">
         <thead>
             <tr>
-                <th scope="col"><input type="checkbox" id="selectAllClubs" onclick="toggleSelectAll(this)"></th>
+                <th scope="col"><input type="checkbox" id="selectAllClubs" onclick="toggleSelectAllClubs(this)"></th>
                 <th scope="col">编号</th>
                 <th scope="col">图片</th>
                 <th scope="col">社团名称</th>
@@ -75,6 +75,10 @@ function loadClubData(pageNumber = 1, searchTerm = '') {
                 `);
             });
 
+            // 重新绑定全选框状态
+            const selectAllCheckbox = document.getElementById('selectAllClubs');
+            selectAllCheckbox.checked = false;
+
             // 分页处理
             const pagination = $('#pagination');
             pagination.empty();
@@ -94,18 +98,16 @@ function searchClubs() {
     loadClubs(1, $('#searchClubInput').val().trim()); // 重新加载数据，从第一页开始，并传递搜索条件
 }
 
-
 function resetClubSearch() {
     $('#searchClubInput').val(''); // 清空搜索输入框
     loadClubs(); // 重新加载数据，从第一页开始，并且没有搜索条件
 }
 
-
-
-function toggleSelectAll(selectAllCheckbox) {
-    const checkboxes = $('.clubCheckbox');
-    checkboxes.prop('checked', selectAllCheckbox.checked);
+function toggleSelectAllClubs(selectAllCheckbox) {
+    const checkboxes = document.querySelectorAll('.clubCheckbox');
+    checkboxes.forEach(checkbox => checkbox.checked = selectAllCheckbox.checked);
 }
+
 
 function loadEditClubForm(club_id) {
     $.ajax({
@@ -125,9 +127,9 @@ function loadEditClubForm(club_id) {
                     <textarea class="form-control" id="description" name="description" rows="3">${club.description}</textarea>
                 </div>
                 <div class="form-group">
-                    <label for="image_url">社团图片</label>
-                    <input type="file" class="form-control-file" id="image_url" name="image_url">
-                    <img src="${club.image_url}" alt="${club.club_name}" style="width: 100px; margin-top: 10px;">
+                    <label for="club_image">社团图片</label>
+                    <input type="file" class="form-control-file" id="club_image" name="club_image" onchange="previewClubImage(event)">
+                    <img src="${club.image_url}" alt="${club.club_name}" style="width: 100px; margin-top: 10px;" id="clubImagePreview">
                 </div>
                 <button type="submit" class="btn btn-primary">保存</button>
             </form>
@@ -137,7 +139,8 @@ function loadEditClubForm(club_id) {
                 e.preventDefault(); // 阻止默认的表单提交行为
 
                 var formData = new FormData(this); // 创建 FormData 对象来上传文件
-                formData.append('club_id', $('#club_id').val());
+                formData.append('club_name', $('#club_name').val());
+                formData.append('description', $('#description').val());
 
                 $.ajax({
                     url: '/clubs/' + $('#club_id').val(),
@@ -161,6 +164,11 @@ function loadEditClubForm(club_id) {
         }
     });
 }
+function previewClubImage(event) {
+    const output = document.getElementById('clubImagePreview');
+    output.src = URL.createObjectURL(event.target.files[0]);
+}
+
 function deleteClub(club_id) {
     if (confirm('确定要删除这个社团吗？')) {
         $.ajax({
@@ -213,8 +221,9 @@ function loadAddClubForm() {
             <textarea class="form-control" id="description" name="description" rows="3"></textarea>
         </div>
         <div class="form-group">
-            <label for="image_url">社团图片</label>
-            <input type="file" class="form-control-file" id="image_url" name="image_url">
+            <label for="club_image">社团图片</label>
+            <input type="file" class="form-control-file" id="club_image" name="club_image" onchange="previewAddClubImage(event)">
+            <img id="addClubImagePreview" style="width: 100px; margin-top: 10px;">
         </div>
         <button type="submit" class="btn btn-primary">提交</button>
     </form>
@@ -240,5 +249,33 @@ function loadAddClubForm() {
                 console.error(xhr.responseText);
             }
         });
+    });
+}
+
+function previewAddClubImage(event) {
+    const output = document.getElementById('addClubImagePreview');
+    output.src = URL.createObjectURL(event.target.files[0]);
+}
+
+function uploadClubImage(club_id) {
+    const fileInput = document.getElementById('club_image');
+    const formData = new FormData();
+    formData.append('club_image', fileInput.files[0]);
+
+    $.ajax({
+        url: `/clubs/${club_id}/updateImage`,
+        method: 'PUT',
+        data: formData,
+        processData: false, // 不处理数据
+        contentType: false, // 不设置内容类型
+        success: function() {
+            const newImageUrl = URL.createObjectURL(fileInput.files[0]);
+            document.getElementById('clubImagePreview').src = newImageUrl; // 更新图片显示
+            alert('图片上传成功');
+        },
+        error: function(xhr, status, error) {
+            alert('图片上传失败，请稍后再试。');
+            console.error(xhr.responseText);
+        }
     });
 }
