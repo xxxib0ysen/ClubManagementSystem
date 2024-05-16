@@ -13,7 +13,7 @@ function loadMembers(pageNumber = 1, club_id = null, searchTerm = '') {
                 </div>
                 <div class="col-auto">
                     <button class="btn btn-primary" onclick="searchMembers()">搜索</button>
-                    <button class="btn btn-secondary" onclick="resetSearch()">重置</button>
+                    <button class="btn btn-secondary" onclick="resetMemberSearch()">重置</button>
                 </div>
             </div>
             <div class="mb-3">
@@ -131,7 +131,7 @@ function searchMembers() {
     loadMembers(1, null, searchTerm); // 重新加载数据，从第一页开始，并传递搜索词
 }
 
-function resetSearch() {
+function resetMemberSearch() {
     $('#searchMemberInput').val(''); // 清空搜索输入框
     loadMembers(); // 重新加载数据
 }
