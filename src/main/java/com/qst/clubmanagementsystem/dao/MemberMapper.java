@@ -38,5 +38,5 @@ public interface MemberMapper {
     List<Member> selectMembersPaginated(@Param("offset") int offset, @Param("limit") int limit);
 
     @Select("SELECT m.*, c.club_name FROM Members m JOIN Clubs c ON m.club_id = c.club_id WHERE m.member_id = #{member_id}")
-    Member getMemberById(@Param("member_id") int memberId);
+    Member getMemberById(@Param("member_id") int member_id);
 }

@@ -18,6 +18,6 @@ public interface MemberService {
     List<Member> getAllMembers();
     List<Member> getMembersByclub_id(int club_id);
     List<Member> searchMembersByTerm(String searchTerm);
-    PageInfo<Member> getMembersPaginated(int page, int size, String searchTerm);
-    Member getMemberById(int memberId);
+    PageInfo<Member> getMembersPaginated(int page, int size, String searchTerm, Integer club_id);
+    Member getMemberById(int member_id);
 }

@@ -61,19 +61,21 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public PageInfo<Member> getMembersPaginated(int page, int size, String searchTerm) {
+    public PageInfo<Member> getMembersPaginated(int page, int size, String searchTerm, Integer club_id) {
         PageHelper.startPage(page, size);
         List<Member> members;
-        if (searchTerm == null || searchTerm.isEmpty()) {
-            members = memberMapper.selectAllMembers();
-        } else {
+        if (club_id != null) {
+            members = memberMapper.selectMembersByclub_id(club_id);
+        } else if (searchTerm != null && !searchTerm.isEmpty()) {
             members = memberMapper.searchMembers(searchTerm);
+        } else {
+            members = memberMapper.selectAllMembers();
         }
         return new PageInfo<>(members);
     }
 
     @Override
-    public Member getMemberById(int memberId) {
-        return memberMapper.getMemberById(memberId);
+    public Member getMemberById(int member_id) {
+        return memberMapper.getMemberById(member_id);
     }
 }

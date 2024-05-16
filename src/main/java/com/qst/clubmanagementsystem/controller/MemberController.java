@@ -67,8 +67,8 @@ public class MemberController {
 
     // 分页查询会员
     @GetMapping("/page")
-    public PageInfo<Member> getMembersPaginated(@RequestParam("page") int page, @RequestParam("size") int size, @RequestParam(required = false) String searchTerm) {
-        return memberService.getMembersPaginated(page, size, searchTerm);
+    public PageInfo<Member> getMembersPaginated(@RequestParam("page") int page, @RequestParam("size") int size, @RequestParam(required = false) String searchTerm, @RequestParam(required = false) Integer club_id) {
+        return memberService.getMembersPaginated(page, size, searchTerm, club_id);
     }
 
 
