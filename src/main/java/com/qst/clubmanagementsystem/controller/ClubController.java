@@ -1,11 +1,14 @@
 package com.qst.clubmanagementsystem.controller;
 
+import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.qst.clubmanagementsystem.entity.Club;
 import com.qst.clubmanagementsystem.entity.ClubMemberCount;
 import com.qst.clubmanagementsystem.service.ClubService;
 import com.qst.clubmanagementsystem.service.FileStorageService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +30,9 @@ public class ClubController {
     private ClubService clubService;
     @Autowired
     private FileStorageService fileStorageService;
+
+    private static final Logger logger = LoggerFactory.getLogger(ClubController.class);
+
 
     // 添加社团
     @PostMapping("/")
@@ -92,21 +98,17 @@ public class ClubController {
         return ResponseEntity.ok(counts);
     }
 
-    // 分页查询社团
+    // 分页查询和模糊搜索社团
     @GetMapping("/page")
-    public PageInfo<Club> getClubs(@RequestParam(defaultValue = "1") int page,
-                                   @RequestParam(defaultValue = "5") int size,
-                                   @RequestParam(required = false) String club_name) {
-        return clubService.getClubsPaginated(page, size, club_name);
+    public PageInfo<Club> getClubsByPage(
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "5") int size,
+            @RequestParam(value = "club_name", required = false) String club_name) {
+        logger.info("搜索关键字: " + club_name);
+        PageHelper.startPage(page, size);
+        Page<Club> clubs = clubService.searchClubsByName(club_name);
+        return new PageInfo<>(clubs);
     }
-
-    // 模糊搜索社团
-    @GetMapping("/search")
-    public ResponseEntity<List<Club>> searchClubs(@RequestParam("club_name") String club_name) {
-        List<Club> clubs = clubService.searchClubsByName(club_name);
-        return ResponseEntity.ok(clubs);
-    }
-
     @GetMapping("/{club_id}")
     public ResponseEntity<Club> getClubById(@PathVariable int club_id) {
         Club club = clubService.getClubById(club_id);

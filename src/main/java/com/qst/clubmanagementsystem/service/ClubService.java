@@ -1,5 +1,6 @@
 package com.qst.clubmanagementsystem.service;
 
+import com.github.pagehelper.Page;
 import com.github.pagehelper.PageInfo;
 import com.qst.clubmanagementsystem.entity.Club;
 import com.qst.clubmanagementsystem.entity.ClubMemberCount;
@@ -21,6 +22,6 @@ public interface ClubService {
     void updateClubImage(int club_id, String image_url);
     List<ClubMemberCount> getClubMemberCounts();
     PageInfo<Club> getClubsPaginated(int pageNumber, int pageSize, String club_name);
-    List<Club> searchClubsByName(String club_name);
+    Page<Club> searchClubsByName(String club_name);
     Club getClubById(int club_id);
 }

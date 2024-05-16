@@ -1,5 +1,6 @@
 package com.qst.clubmanagementsystem.service;
 
+import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.qst.clubmanagementsystem.dao.ClubMapper;
@@ -78,10 +79,9 @@ public class ClubServiceImpl implements ClubService {
     }
 
     @Override
-    public List<Club> searchClubsByName(String club_name) {
+    public Page<Club> searchClubsByName(String club_name) {
         return clubMapper.searchClubsByName(club_name);
     }
-
     @Override
     public Club getClubById(int club_id) {
         return clubMapper.getClubById(club_id);

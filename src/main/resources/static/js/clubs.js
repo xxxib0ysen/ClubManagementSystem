@@ -1,4 +1,4 @@
-function loadClubs(pageNumber = 1) {
+function loadClubs(pageNumber = 1, searchTerm = '') {
     var htmlContent = `
     <div class="row mb-3">
         <div class="col">
@@ -6,7 +6,7 @@ function loadClubs(pageNumber = 1) {
         </div>
         <div class="col-auto">
             <button class="btn btn-primary" onclick="searchClubs()">搜索</button>
-            <button class="btn btn-secondary" onclick="resetSearch()">重置</button>
+            <button class="btn btn-secondary" onclick="resetClubSearch()">重置</button>
         </div>
     </div>
     <div class="mb-3">
@@ -34,27 +34,28 @@ function loadClubs(pageNumber = 1) {
         </ul>
     </nav>`;
     $('#content').html(htmlContent);
-    loadClubData(pageNumber); // 调用函数加载并展示社团数据
+    loadClubData(pageNumber, searchTerm); // 调用函数加载并展示社团数据
 
     // 绑定新增社团按钮的点击事件
     $('#addClubButton').on('click', function() {
         loadAddClubForm();
     });
+
+    // 预填搜索框中的搜索条件
+    $('#searchClubInput').val(searchTerm);
 }
 
-function loadClubData(pageNumber = 1) {
-    const searchTerm = $('#searchClubInput').val().trim();
-
+function loadClubData(pageNumber = 1, searchTerm = '') {
     $.ajax({
         url: '/clubs/page',
         method: 'GET',
         data: {
             page: pageNumber,
             size: 5,
-            club_name: searchTerm
+            club_name: searchTerm // 将搜索条件添加到请求参数中
         },
         success: function(response) {
-            console.log(response); // 打印从后端返回的完整响应数据
+            console.log("Response data:", response); // 调试输出
             const tbody = $('#clubListTable');
             tbody.empty();
 
@@ -79,23 +80,27 @@ function loadClubData(pageNumber = 1) {
             pagination.empty();
             for (let i = 1; i <= response.pages; i++) {
                 pagination.append(`<li class="page-item ${i === pageNumber ? 'active' : ''}">
-                    <a class="page-link" href="#" onclick="loadClubs(${i})">${i}</a>
+                    <a class="page-link" href="#" onclick="loadClubs(${i}, '${searchTerm}')">${i}</a>
                 </li>`);
             }
         },
         error: function() {
-            $('#clubListTable').html('<tr><td colspan="5">加载数据失败，请稍后重试。</td></tr>');
+            $('#clubListTable').html('<tr><td colspan="6">加载数据失败，请稍后重试。</td></tr>');
         }
     });
 }
+
 function searchClubs() {
-    loadClubs(1); // 重新加载数据，从第一页开始
+    loadClubs(1, $('#searchClubInput').val().trim()); // 重新加载数据，从第一页开始，并传递搜索条件
 }
 
-function resetSearch() {
+
+function resetClubSearch() {
     $('#searchClubInput').val(''); // 清空搜索输入框
-    loadClubs(); // 重新加载数据
+    loadClubs(); // 重新加载数据，从第一页开始，并且没有搜索条件
 }
+
+
 
 function toggleSelectAll(selectAllCheckbox) {
     const checkboxes = $('.clubCheckbox');
