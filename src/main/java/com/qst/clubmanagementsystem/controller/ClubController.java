@@ -17,11 +17,16 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
+/**
+ * @Description 社团管理控制器
+ */
 @RestController
 @RequestMapping("/clubs")
 public class ClubController {
+
     @Autowired
     private ClubService clubService;
+
     @Autowired
     private FileStorageService fileStorageService;
 
@@ -36,6 +41,7 @@ public class ClubController {
         club.setClub_name(club_name);
         club.setDescription(description);
 
+        // 如果有文件上传，则存储文件并设置图片URL
         if (file != null && !file.isEmpty()) {
             String fileName = fileStorageService.storeFile(file);
             String image_url = "/uploads/" + fileName;  // 生成相对路径
@@ -51,22 +57,25 @@ public class ClubController {
     public ResponseEntity<Club> updateClub(@PathVariable int club_id,
                                            @RequestParam("club_name") String club_name,
                                            @RequestParam("description") String description,
-                                           @RequestParam(value = "club_image", required = false) MultipartFile file) {
+                                           @RequestParam(value = "club_image", required = false) MultipartFile file,
+                                           @RequestParam(value = "existing_image_url", required = false) String existingImageUrl) {
         Club club = new Club();
         club.setClub_id(club_id);
         club.setClub_name(club_name);
         club.setDescription(description);
 
+        // 如果有新的文件上传，则存储新文件并设置新的图片URL，否则使用现有的图片URL
         if (file != null && !file.isEmpty()) {
             String fileName = fileStorageService.storeFile(file);
             String image_url = "/uploads/" + fileName;  // 生成相对路径
             club.setImage_url(image_url);
+        } else {
+            club.setImage_url(existingImageUrl);
         }
 
         clubService.updateClub(club);
         return ResponseEntity.ok(club);
     }
-
 
     // 更新社团图片
     @PutMapping("/{club_id}/updateImage")

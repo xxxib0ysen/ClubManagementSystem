@@ -1,5 +1,7 @@
+// 加载社团列表页面，包含搜索栏、新增按钮和批量删除按钮
 function loadClubs(pageNumber = 1, searchTerm = '') {
-    var htmlContent = `
+    // 定义页面内容的HTML结构
+    const htmlContent = `
     <div class="row mb-3">
         <div class="col">
             <input type="text" class="form-control" id="searchClubInput" placeholder="搜索社团名称">
@@ -33,32 +35,29 @@ function loadClubs(pageNumber = 1, searchTerm = '') {
             <!-- 分页按钮将通过JavaScript动态加载 -->
         </ul>
     </nav>`;
+
+    // 将HTML内容插入到页面中
     $('#content').html(htmlContent);
-    loadClubData(pageNumber, searchTerm); // 调用函数加载并展示社团数据
 
-    // 绑定新增社团按钮的点击事件
-    $('#addClubButton').on('click', function() {
-        loadAddClubForm();
-    });
+    // 加载社团数据
+    loadClubData(pageNumber, searchTerm);
 
-    // 预填搜索框中的搜索条件
+    // 绑定新增按钮的点击事件
+    $('#addClubButton').on('click', loadAddClubForm);
+    // 设置搜索框的初始值
     $('#searchClubInput').val(searchTerm);
 }
 
+// 加载社团数据并动态生成表格内容
 function loadClubData(pageNumber = 1, searchTerm = '') {
     $.ajax({
         url: '/clubs/page',
         method: 'GET',
-        data: {
-            page: pageNumber,
-            size: 5,
-            club_name: searchTerm // 将搜索条件添加到请求参数中
-        },
+        data: { page: pageNumber, size: 5, club_name: searchTerm },
         success: function(response) {
-            console.log("Response data:", response); // 调试输出
             const tbody = $('#clubListTable');
-            tbody.empty();
-
+            tbody.empty(); // 清空表格内容
+            // 遍历返回的社团数据，生成表格行
             response.list.forEach(club => {
                 tbody.append(`
                 <tr>
@@ -74,19 +73,9 @@ function loadClubData(pageNumber = 1, searchTerm = '') {
                 </tr>
                 `);
             });
-
-            // 重新绑定全选框状态
-            const selectAllCheckbox = document.getElementById('selectAllClubs');
-            selectAllCheckbox.checked = false;
-
-            // 分页处理
-            const pagination = $('#pagination');
-            pagination.empty();
-            for (let i = 1; i <= response.pages; i++) {
-                pagination.append(`<li class="page-item ${i === pageNumber ? 'active' : ''}">
-                    <a class="page-link" href="#" onclick="loadClubs(${i}, '${searchTerm}')">${i}</a>
-                </li>`);
-            }
+            $('#selectAllClubs').prop('checked', false); // 取消全选
+            // 渲染分页按钮
+            renderPagination(response.pages, pageNumber, searchTerm);
         },
         error: function() {
             $('#clubListTable').html('<tr><td colspan="6">加载数据失败，请稍后重试。</td></tr>');
@@ -94,81 +83,123 @@ function loadClubData(pageNumber = 1, searchTerm = '') {
     });
 }
 
-function searchClubs() {
-    loadClubs(1, $('#searchClubInput').val().trim()); // 重新加载数据，从第一页开始，并传递搜索条件
+// 渲染分页按钮
+function renderPagination(totalPages, currentPage, searchTerm) {
+    const pagination = $('#pagination');
+    pagination.empty(); // 清空分页内容
+    for (let i = 1; i <= totalPages; i++) {
+        pagination.append(`<li class="page-item ${i === currentPage ? 'active' : ''}">
+            <a class="page-link" href="#" onclick="loadClubs(${i}, '${searchTerm}')">${i}</a>
+        </li>`);
+    }
 }
 
+// 搜索社团
+function searchClubs() {
+    // 获取搜索输入框的值并加载社团列表
+    loadClubs(1, $('#searchClubInput').val().trim());
+}
+
+// 重置搜索
 function resetClubSearch() {
     $('#searchClubInput').val(''); // 清空搜索输入框
-    loadClubs(); // 重新加载数据，从第一页开始，并且没有搜索条件
+    loadClubs(); // 加载所有社团
 }
 
+// 全选/取消全选功能
 function toggleSelectAllClubs(selectAllCheckbox) {
-    const checkboxes = document.querySelectorAll('.clubCheckbox');
-    checkboxes.forEach(checkbox => checkbox.checked = selectAllCheckbox.checked);
+    $('.clubCheckbox').prop('checked', selectAllCheckbox.checked); // 设置所有复选框的选中状态
 }
 
+// 加载添加或编辑社团表单模板
+function loadFormTemplate(type, club = {}) {
+    const formTitle = type === 'add' ? '添加社团' : '编辑社团';
+    const clubIdInput = type === 'edit' ? `<input type="hidden" id="club_id" name="club_id" value="${club.club_id}">` : '';
+    const existingImageUrlInput = type === 'edit' && club.image_url ? `<input type="hidden" id="existing_image_url" name="existing_image_url" value="${club.image_url}">` : '';
+    const imageUrl = club.image_url ? `<img src="${club.image_url}" alt="${club.club_name}" style="width: 100px; margin-top: 10px;" id="clubImagePreview">` : '';
 
+    // 设置表单HTML内容
+    $('#content').html(`
+    <h2>${formTitle}</h2>
+    <form id="${type}ClubForm" enctype="multipart/form-data">
+        ${clubIdInput}
+        ${existingImageUrlInput}
+        <div class="form-group">
+            <label for="club_name">社团名称</label>
+            <input type="text" class="form-control" id="club_name" name="club_name" value="${club.club_name || ''}" required>
+        </div>
+        <div class="form-group">
+            <label for="description">描述</label>
+            <textarea class="form-control" id="description" name="description" rows="3">${club.description || ''}</textarea>
+        </div>
+        <div class="form-group">
+            <label for="club_image">社团图片</label>
+            <input type="file" class="form-control-file" id="club_image" name="club_image" onchange="previewClubImage(event, '${type}')">
+            ${imageUrl}
+        </div>
+        <button type="submit" class="btn btn-primary">提交</button>
+    </form>
+    `);
+
+    // 提交表单时的处理逻辑
+    $(`#${type}ClubForm`).submit(function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        if (type === 'edit') formData.append('club_id', $('#club_id').val());
+
+        const url = type === 'add' ? '/clubs/' : `/clubs/${$('#club_id').val()}`;
+        const method = type === 'add' ? 'POST' : 'PUT';
+
+        // 如果没有上传新图片，使用现有图片URL
+        if ($('#club_image').get(0).files.length === 0) {
+            formData.append('image_url', $('#existing_image_url').val());
+        }
+
+        // 发送Ajax请求提交表单
+        $.ajax({
+            url,
+            method,
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function() {
+                alert('操作成功！');
+                loadClubs(); // 操作成功后重新加载社团列表
+            },
+            error: function(xhr) {
+                alert('操作失败，请稍后再试。');
+                console.error(xhr.responseText);
+            }
+        });
+    });
+}
+
+// 加载新增社团表单
+function loadAddClubForm() {
+    loadFormTemplate('add');
+}
+
+// 加载编辑社团表单
 function loadEditClubForm(club_id) {
     $.ajax({
         url: '/clubs/' + club_id,
         method: 'GET',
         success: function(club) {
-            $('#content').html(`
-            <h2>编辑社团</h2>
-            <form id="editClubForm" enctype="multipart/form-data">
-                <input type="hidden" id="club_id" name="club_id" value="${club.club_id}">
-                <div class="form-group">
-                    <label for="club_name">社团名称</label>
-                    <input type="text" class="form-control" id="club_name" name="club_name" value="${club.club_name}" required>
-                </div>
-                <div class="form-group">
-                    <label for="description">描述</label>
-                    <textarea class="form-control" id="description" name="description" rows="3">${club.description}</textarea>
-                </div>
-                <div class="form-group">
-                    <label for="club_image">社团图片</label>
-                    <input type="file" class="form-control-file" id="club_image" name="club_image" onchange="previewClubImage(event)">
-                    <img src="${club.image_url}" alt="${club.club_name}" style="width: 100px; margin-top: 10px;" id="clubImagePreview">
-                </div>
-                <button type="submit" class="btn btn-primary">保存</button>
-            </form>
-            `);
-
-            $('#editClubForm').submit(function(e) {
-                e.preventDefault(); // 阻止默认的表单提交行为
-
-                var formData = new FormData(this); // 创建 FormData 对象来上传文件
-                formData.append('club_name', $('#club_name').val());
-                formData.append('description', $('#description').val());
-
-                $.ajax({
-                    url: '/clubs/' + $('#club_id').val(),
-                    method: 'PUT',
-                    data: formData,
-                    processData: false, // 不处理数据
-                    contentType: false, // 不设置内容类型
-                    success: function(response) {
-                        alert('社团信息更新成功！');
-                        loadClubs(); // 更新成功后重新加载社团列表
-                    },
-                    error: function(xhr, status, error) {
-                        alert('社团信息更新失败，请稍后再试。');
-                        console.error(xhr.responseText);
-                    }
-                });
-            });
+            loadFormTemplate('edit', club);
         },
         error: function() {
             alert('获取社团信息失败，请稍后再试。');
         }
     });
 }
-function previewClubImage(event) {
-    const output = document.getElementById('clubImagePreview');
+
+// 预览上传的社团图片
+function previewClubImage(event, type) {
+    const output = document.getElementById(type === 'add' ? 'addClubImagePreview' : 'clubImagePreview');
     output.src = URL.createObjectURL(event.target.files[0]);
 }
 
+// 删除社团
 function deleteClub(club_id) {
     if (confirm('确定要删除这个社团吗？')) {
         $.ajax({
@@ -176,7 +207,7 @@ function deleteClub(club_id) {
             method: 'DELETE',
             success: function() {
                 alert('社团删除成功！');
-                loadClubs(); // 重新加载社团数据
+                loadClubs(); // 删除成功后重新加载社团列表
             },
             error: function() {
                 alert('删除失败，请稍后再试。');
@@ -185,8 +216,9 @@ function deleteClub(club_id) {
     }
 }
 
+// 批量删除社团
 function batchDeleteClubs() {
-    var selectedclub_ids = $('.clubCheckbox:checked').map(function() { return $(this).val(); }).get();
+    const selectedclub_ids = $('.clubCheckbox:checked').map(function() { return $(this).val(); }).get();
     if (selectedclub_ids.length === 0) {
         alert('请选择要删除的社团。');
         return;
@@ -199,83 +231,11 @@ function batchDeleteClubs() {
             contentType: 'application/json',
             success: function() {
                 alert('批量删除社团成功！');
-                loadClubs(); // 重新加载社团数据
+                loadClubs(); // 批量删除成功后重新加载社团列表
             },
             error: function() {
                 alert('批量删除失败，请稍后再试。');
             }
         });
     }
-}
-
-function loadAddClubForm() {
-    $('#content').html(`
-    <h2>添加社团</h2>
-    <form id="addClubForm" enctype="multipart/form-data">
-        <div class="form-group">
-            <label for="club_name">社团名称</label>
-            <input type="text" class="form-control" id="club_name" name="club_name" required>
-        </div>
-        <div class="form-group">
-            <label for="description">描述</label>
-            <textarea class="form-control" id="description" name="description" rows="3"></textarea>
-        </div>
-        <div class="form-group">
-            <label for="club_image">社团图片</label>
-            <input type="file" class="form-control-file" id="club_image" name="club_image" onchange="previewAddClubImage(event)">
-            <img id="addClubImagePreview" style="width: 100px; margin-top: 10px;">
-        </div>
-        <button type="submit" class="btn btn-primary">提交</button>
-    </form>
-    `);
-
-    $('#addClubForm').submit(function(e) {
-        e.preventDefault(); // 阻止默认的表单提交行为
-
-        var formData = new FormData(this); // 创建 FormData 对象来上传文件
-
-        $.ajax({
-            url: '/clubs/',
-            method: 'POST',
-            data: formData,
-            processData: false, // 不处理数据
-            contentType: false, // 不设置内容类型
-            success: function(response) {
-                alert('社团添加成功！');
-                loadClubs(); // 添加成功后重新加载社团列表
-            },
-            error: function(xhr, status, error) {
-                alert('添加社团失败，请稍后重试。');
-                console.error(xhr.responseText);
-            }
-        });
-    });
-}
-
-function previewAddClubImage(event) {
-    const output = document.getElementById('addClubImagePreview');
-    output.src = URL.createObjectURL(event.target.files[0]);
-}
-
-function uploadClubImage(club_id) {
-    const fileInput = document.getElementById('club_image');
-    const formData = new FormData();
-    formData.append('club_image', fileInput.files[0]);
-
-    $.ajax({
-        url: `/clubs/${club_id}/updateImage`,
-        method: 'PUT',
-        data: formData,
-        processData: false, // 不处理数据
-        contentType: false, // 不设置内容类型
-        success: function() {
-            const newImageUrl = URL.createObjectURL(fileInput.files[0]);
-            document.getElementById('clubImagePreview').src = newImageUrl; // 更新图片显示
-            alert('图片上传成功');
-        },
-        error: function(xhr, status, error) {
-            alert('图片上传失败，请稍后再试。');
-            console.error(xhr.responseText);
-        }
-    });
 }

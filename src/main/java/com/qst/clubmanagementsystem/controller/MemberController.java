@@ -24,8 +24,9 @@ public class MemberController {
 
     // 添加会员
     @PostMapping("/")
-    public void addMember(@RequestBody Member member) {
+    public ResponseEntity<String> addMember(@RequestBody Member member) {
         memberService.addMember(member);
+        return ResponseEntity.ok("Member added successfully");
     }
 
     // 更新会员信息

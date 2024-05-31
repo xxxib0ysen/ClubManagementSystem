@@ -40,10 +40,6 @@ $(document).ready(function() {
                 loadEditMemberForm();
                 updateBreadcrumb('会员管理', '编辑会员');
                 break;
-            case 'menuManagement':
-                loadMenuManagement();
-                updateBreadcrumb('菜单管理');
-                break;
             default:
                 console.log('No such section');
         }

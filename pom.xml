@@ -1,90 +1,112 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- 项目对象模型（POM）根元素，定义了项目的基本信息和配置 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <!-- POM 模型版本 -->
     <modelVersion>4.0.0</modelVersion>
+
+    <!-- 项目继承的父 POM -->
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>2.5.9</version>
-        <relativePath/> <!-- lookup parent from repository -->
+        <relativePath/> <!-- 从仓库中查找父 POM -->
     </parent>
+
+    <!-- 项目组 ID -->
     <groupId>com.qst</groupId>
+    <!-- 项目工件 ID -->
     <artifactId>ClubManagementSystem</artifactId>
+    <!-- 项目版本 -->
     <version>0.0.1-SNAPSHOT</version>
+    <!-- 项目名称 -->
     <name>ClubManagementSystem</name>
+    <!-- 项目描述 -->
     <description>ClubManagementSystem</description>
+
+    <!-- 项目属性 -->
     <properties>
+        <!-- Java 版本 -->
         <java.version>8</java.version>
     </properties>
+
+    <!-- 项目依赖 -->
     <dependencies>
+        <!-- Spring Boot Web Starter，包含 Spring MVC、Tomcat 等 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!-- MySQL JDBC Driver -->
+        <!-- MySQL JDBC 驱动 -->
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <scope>runtime</scope>
         </dependency>
 
-        <!-- MyBatis Spring Boot Starter -->
+        <!-- MyBatis Spring Boot Starter，简化 MyBatis 与 Spring Boot 集成 -->
         <dependency>
             <groupId>org.mybatis.spring.boot</groupId>
             <artifactId>mybatis-spring-boot-starter</artifactId>
             <version>2.2.0</version>
         </dependency>
 
-
-
+        <!-- Jackson 数据绑定库 -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
         </dependency>
 
+        <!-- Spring Boot Actuator，提供监控和管理功能 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
-
+        <!-- Lombok，用于简化 Java 代码的工具 -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
 
+        <!-- Spring Boot 测试启动器，包含 JUnit 等测试工具 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
 
-        <!--MyBatis分页插件-->
+        <!-- MyBatis 分页插件 -->
         <dependency>
             <groupId>com.github.pagehelper</groupId>
             <artifactId>pagehelper-spring-boot-starter</artifactId>
             <version>1.2.8</version>
         </dependency>
 
+        <!-- HikariCP 连接池 -->
         <dependency>
             <groupId>com.zaxxer</groupId>
             <artifactId>HikariCP</artifactId>
         </dependency>
 
+        <!-- Spring Boot 日志启动器，包含 SLF4J 和 Logback -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-logging</artifactId>
         </dependency>
     </dependencies>
 
+    <!-- 构建配置 -->
     <build>
         <plugins>
+            <!-- Spring Boot Maven 插件，用于构建 Spring Boot 应用 -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
+                    <!-- 排除 Lombok 插件 -->
                     <excludes>
                         <exclude>
                             <groupId>org.projectlombok</groupId>

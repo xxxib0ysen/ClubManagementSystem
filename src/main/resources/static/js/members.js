@@ -1,9 +1,11 @@
+// 加载会员列表页面
 function loadMembers(pageNumber = 1, club_id = null, searchTerm = '') {
+    // 定义页面内容的HTML结构
     var htmlContent = `
     <div class="row">
         <div class="col-md-2">
             <div class="list-group" id="clubFilterMenu">
-                
+                <!-- 社团筛选菜单将通过JavaScript动态加载 -->
             </div>
         </div>
         <div class="col-md-10">
@@ -41,26 +43,36 @@ function loadMembers(pageNumber = 1, club_id = null, searchTerm = '') {
             </nav>
         </div>
     </div>`;
-    $('#content').html(htmlContent);
-    loadClubFilterMenu(); // 加载社团筛选菜单
-    loadMemberData(pageNumber, club_id, searchTerm); // 调用函数加载并展示会员数据，并传递搜索词
 
-    // 绑定新增会员按钮的点击事件
+    // 将HTML内容插入到页面中
+    $('#content').html(htmlContent);
+
+    // 加载社团筛选菜单和会员数据
+    loadClubFilterMenu();
+    loadMemberData(pageNumber, club_id, searchTerm);
+
+    // 绑定新增会员按钮的点击事件以加载添加会员表单
     $('#addMemberButton').on('click', function() {
         loadAddMemberForm();
     });
 }
+
+// 加载社团筛选菜单
 function loadClubFilterMenu() {
     const clubFilterMenu = $('#clubFilterMenu');
-    clubFilterMenu.empty(); // Clear existing items
+    clubFilterMenu.empty(); // 清空现有的菜单项
+
+    // 添加“所有社团”选项
     clubFilterMenu.append(`
         <a href="#" class="list-group-item list-group-item-action" onclick="loadMembers(1)">所有社团</a>
-    `); // 添加“所有社团”选项
+    `);
 
+    // 发送Ajax请求获取社团列表
     $.ajax({
         url: '/clubs/',
         method: 'GET',
         success: function(clubs) {
+            // 遍历社团列表，生成菜单项
             clubs.forEach(club => {
                 clubFilterMenu.append(`
                     <a href="#" class="list-group-item list-group-item-action" onclick="filterMembersByClub(${club.club_id})">${club.club_name}</a>
@@ -72,11 +84,14 @@ function loadClubFilterMenu() {
         }
     });
 }
+
+// 根据社团筛选会员
 function filterMembersByClub(club_id) {
     const searchTerm = $('#searchMemberInput').val().trim();
     loadMembers(1, club_id, searchTerm);
 }
 
+// 加载会员数据并动态生成表格内容
 function loadMemberData(pageNumber = 1, club_id = null, searchTerm = '') {
     let requestData = {
         page: pageNumber,
@@ -84,18 +99,21 @@ function loadMemberData(pageNumber = 1, club_id = null, searchTerm = '') {
         searchTerm: searchTerm
     };
 
+    // 如果指定了社团ID，则添加到请求参数中
     if (club_id !== null) {
         requestData.club_id = club_id;
     }
 
+    // 发送Ajax请求获取会员数据
     $.ajax({
         url: '/members/page',
         method: 'GET',
         data: requestData,
         success: function(response) {
             const tbody = $('#memberListTable');
-            tbody.empty();
+            tbody.empty(); // 清空表格内容
 
+            // 遍历返回的会员数据，生成表格行
             response.list.forEach(member => {
                 tbody.append(`
                 <tr>
@@ -113,7 +131,7 @@ function loadMemberData(pageNumber = 1, club_id = null, searchTerm = '') {
 
             // 分页处理
             const pagination = $('#pagination');
-            pagination.empty();
+            pagination.empty(); // 清空分页内容
             for (let i = 1; i <= response.pages; i++) {
                 pagination.append(`<li class="page-item ${i === pageNumber ? 'active' : ''}">
                     <a class="page-link" href="#" onclick="loadMembers(${i}, ${club_id}, '${searchTerm}')">${i}</a>
@@ -126,21 +144,25 @@ function loadMemberData(pageNumber = 1, club_id = null, searchTerm = '') {
     });
 }
 
+// 搜索会员
 function searchMembers() {
     const searchTerm = $('#searchMemberInput').val().trim();
     loadMembers(1, null, searchTerm); // 重新加载数据，从第一页开始，并传递搜索词
 }
 
+// 重置搜索
 function resetMemberSearch() {
     $('#searchMemberInput').val(''); // 清空搜索输入框
     loadMembers(); // 重新加载数据
 }
 
+// 全选/取消全选功能
 function toggleSelectAll(selectAllCheckbox, checkboxClass) {
     const checkboxes = $(`.${checkboxClass}`);
     checkboxes.prop('checked', selectAllCheckbox.checked);
 }
 
+// 加载添加会员表单
 function loadAddMemberForm() {
     $('#content').html(`
     <h2>添加会员</h2>
@@ -157,16 +179,21 @@ function loadAddMemberForm() {
     </form>
     `);
 
+    // 提交表单时的处理逻辑
     $('#addMemberForm').submit(function(e) {
         e.preventDefault(); // 阻止默认的表单提交行为
 
-        var formData = $(this).serialize(); // 获取表单数据
+        var formData = {
+            member_name: $('#member_name').val(),
+            club_id: $('#club_id').val()
+        };
 
+        // 发送Ajax请求添加新会员
         $.ajax({
             url: '/members/',
             method: 'POST',
-            contentType: 'application/x-www-form-urlencoded', // 设置内容类型
-            data: formData,
+            contentType: 'application/json', // 设置内容类型
+            data: JSON.stringify(formData), // 序列化数据
             success: function(response) {
                 alert('会员添加成功！');
                 loadMembers(); // 添加成功后重新加载会员列表
@@ -179,6 +206,7 @@ function loadAddMemberForm() {
     });
 }
 
+// 加载编辑会员表单
 function editMember(member_id) {
     // 发送Ajax请求获取特定ID的会员信息
     $.ajax({
@@ -202,6 +230,7 @@ function editMember(member_id) {
             </form>
             `);
 
+            // 提交表单时的处理逻辑
             $('#editMemberForm').submit(function(e) {
                 e.preventDefault(); // 阻止默认的表单提交行为
 
@@ -234,8 +263,10 @@ function editMember(member_id) {
     });
 }
 
+// 删除会员
 function deleteMember(member_id) {
     if (confirm('确定要删除这个会员吗？')) {
+        // 发送Ajax请求删除会员
         $.ajax({
             url: `/members/${member_id}`,
             method: 'DELETE',
@@ -250,6 +281,7 @@ function deleteMember(member_id) {
     }
 }
 
+// 批量删除会员
 function batchDeleteMembers() {
     var selectedmember_ids = $('.memberCheckbox:checked').map(function() { return $(this).val(); }).get();
     if (selectedmember_ids.length === 0) {
@@ -257,6 +289,7 @@ function batchDeleteMembers() {
         return;
     }
     if (confirm('确定要删除选中的会员吗？')) {
+        // 发送Ajax请求批量删除会员
         $.ajax({
             url: '/members/batch-delete',
             method: 'DELETE',

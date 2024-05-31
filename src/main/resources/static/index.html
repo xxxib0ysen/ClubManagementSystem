@@ -4,18 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>社团后台管理系统</title>
+    <!-- 引入Bootstrap CSS -->
     <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css">
+    <!-- 引入自定义CSS -->
     <link rel="stylesheet" href="css/style.css">
+    <!-- 引入jQuery库 -->
     <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.5.1/jquery.min.js" defer></script>
+    <!-- 引入Echarts库 -->
     <script src="https://cdn.bootcdn.net/ajax/libs/echarts/5.0.2/echarts.min.js" defer></script>
 </head>
 <body>
 <div class="container-fluid">
     <div class="row">
+        <!-- 侧边栏导航 -->
         <nav class="col-md-2 d-none d-md-block bg-light sidebar">
             <div class="sidebar-sticky">
                 <ul class="nav flex-column">
+                    <!-- 首页链接 -->
                     <li class="nav-item"><a class="nav-link" href="#home" id="homePage">首页</a></li>
+                    <!-- 社团管理折叠菜单 -->
                     <li class="nav-item">
                         <a class="nav-link" href="#clubManagement" data-toggle="collapse" aria-expanded="false">社团管理</a>
                         <div class="collapse" id="clubManagement">
@@ -26,6 +33,7 @@
                             </ul>
                         </div>
                     </li>
+                    <!-- 会员管理折叠菜单 -->
                     <li class="nav-item">
                         <a class="nav-link" href="#memberManagement" data-toggle="collapse" aria-expanded="false">会员管理</a>
                         <div class="collapse" id="memberManagement">
@@ -36,26 +44,29 @@
                             </ul>
                         </div>
                     </li>
-                    <li class="nav-item"><a class="nav-link" href="#" id="menuManagement">菜单管理</a></li>
                 </ul>
             </div>
         </nav>
+        <!-- 主内容区 -->
         <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+            <!-- 面包屑导航 -->
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item active" aria-current="page">首页</li>
                 </ol>
             </nav>
+            <!-- 内容容器 -->
             <div id="content"></div>
         </main>
     </div>
 </div>
+<!-- 引入Bootstrap JavaScript库 -->
 <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/4.6.0/js/bootstrap.bundle.min.js" defer></script>
+<!-- 引入自定义JavaScript文件 -->
 <script src="js/common.js" defer></script>
 <script src="js/home.js" defer></script>
 <script src="js/clubs.js" defer></script>
 <script src="js/members.js" defer></script>
-<script src="js/menus.js" defer></script>
 <script src="js/scripts.js" defer></script>
 </body>
 </html>
